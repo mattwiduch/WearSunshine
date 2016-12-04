@@ -52,7 +52,8 @@
             android:key="@string/pref_enable_wear_notifications_key"
             android:summaryOff="@string/pref_enable_wear_notifications_false"
             android:summaryOn="@string/pref_enable_wear_notifications_true"
-            android:defaultValue="@string/pref_enable_wear_notifications_default" />
+            android:defaultValue="@string/pref_enable_wear_notifications_default"
+            android:dependency="@string/pref_enable_notifications_key"/>
     </PreferenceCategory>
 
     <PreferenceCategory
