@@ -403,8 +403,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         //checking the last update and notify if it' the first of the day
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String displayNotificationsKey = context.getString(R.string.pref_enable_notifications_key);
+        String displayWearNotificationsKey = context.getString(R.string.pref_enable_wear_notifications_key);
         boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
                 Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
+        boolean displayWearNotifications = prefs.getBoolean(displayWearNotificationsKey,
+                Boolean.parseBoolean(context.getString(R.string.pref_enable_wear_notifications_default)));
 
         if ( displayNotifications ) {
 
@@ -471,7 +474,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                                     .setSmallIcon(iconId)
                                     .setLargeIcon(largeIcon)
                                     .setContentTitle(title)
-                                    .setContentText(contentText);
+                                    .setContentText(contentText)
+                                    .setLocalOnly(!displayWearNotifications);
 
                     // Make something interesting happen when the user clicks on the notification.
                     // In this case, opening the app is sufficient.
