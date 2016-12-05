@@ -52,6 +52,8 @@ import java.net.URL;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
+import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
+
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
     public static final String ACTION_DATA_UPDATED =
@@ -60,7 +62,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     // 60 seconds (1 minute) * 180 = 3 hours
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
-    private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
+    private static final long DAY_IN_MILLIS = 0;//1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
 
 
@@ -466,6 +468,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                             Utility.formatTemperature(context, high),
                             Utility.formatTemperature(context, low));
 
+                    // Load bitmap to be used as background
+                    Bitmap bgBitmap = BitmapFactory.decodeResource(getContext().getResources(),
+                            R.drawable.notification_bg);
+
+                    // Create a WearableExtender to add functionality for wearables
+                    NotificationCompat.WearableExtender wearableExtender =
+                            new NotificationCompat.WearableExtender().setBackground(bgBitmap);
+
                     // NotificationCompatBuilder is a very convenient way to build backward-compatible
                     // notifications.  Just throw in some data.
                     NotificationCompat.Builder mBuilder =
@@ -475,7 +485,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                                     .setLargeIcon(largeIcon)
                                     .setContentTitle(title)
                                     .setContentText(contentText)
-                                    .setLocalOnly(!displayWearNotifications);
+                                    .setLocalOnly(!displayWearNotifications)
+                                    .extend(wearableExtender);
+
+                    Log.d(TAG, "notifyWeather: Wear Notifications " + displayWearNotifications);
 
                     // Make something interesting happen when the user clicks on the notification.
                     // In this case, opening the app is sufficient.
