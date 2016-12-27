@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.sunshine.app.wear;
+package com.example.android.sunshine.weatherprovider;
 
 import android.support.wearable.complications.ComplicationManager;
 import android.support.wearable.complications.ComplicationProviderService;
@@ -21,7 +21,7 @@ import android.util.Log;
 
 public class WeatherProviderService extends ComplicationProviderService {
 
-    private static final String TAG = "RandomNumberProvider";
+    private static final String TAG = "WeatherProvider";
 
     @Override
     public void onComplicationActivated(
