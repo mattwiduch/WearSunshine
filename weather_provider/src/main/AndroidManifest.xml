@@ -11,6 +11,15 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
 
+        <!-- Service that receives data change events -->
+        <service android:name=".ForecastListenerService" >
+            <intent-filter>
+                <!-- listeners receive events that match the action and data filters -->
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/weather_update" />
+            </intent-filter>
+        </service>
+
         <!-- Weather Complications Provider Service -->
         <service
             android:name=".WeatherProviderService"
