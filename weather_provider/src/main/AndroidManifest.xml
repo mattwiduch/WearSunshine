@@ -16,15 +16,17 @@
             <intent-filter>
                 <!-- listeners receive events that match the action and data filters -->
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-                <data android:scheme="wear" android:host="*" android:pathPrefix="/weather_update" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/weather_update/temperature" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/weather_update/humidity" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/weather_update/summary" />
             </intent-filter>
         </service>
 
-        <!-- Weather Complications Provider Service -->
+        <!-- Temperature Complications Provider Service -->
         <service
-            android:name=".WeatherProviderService"
-            android:icon="@drawable/ic_cc_clear"
-            android:label="@string/app_name"
+            android:name=".TemperatureProviderService"
+            android:icon="@drawable/ic_cc_checkmark"
+            android:label="@string/complications_temperature"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
                 <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST"/>
@@ -32,10 +34,46 @@
 
             <meta-data
                 android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="RANGED_VALUE, SMALL_IMAGE"/>
+                android:value="RANGED_VALUE,SHORT_TEXT"/>
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="60"/>
+                android:value="600"/>
+        </service>
+
+        <!-- Humidity Complications Provider Service -->
+        <service
+            android:name=".HumidityProviderService"
+            android:icon="@drawable/ic_cc_clear"
+            android:label="@string/complications_humidity"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="RANGED_VALUE,SHORT_TEXT"/>
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="600"/>
+        </service>
+
+        <!-- Summary Complications Provider Service -->
+        <service
+            android:name=".SummaryProviderService"
+            android:icon="@drawable/ic_full_sad"
+            android:label="@string/complications_summary"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SMALL_IMAGE"/>
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="600"/>
         </service>
     </application>
 
