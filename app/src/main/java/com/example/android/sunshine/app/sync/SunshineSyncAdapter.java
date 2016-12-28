@@ -71,7 +71,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
 
-    private static final String WEATHER_DATA_ITEM_PATH = "/weather_update";
+    private static final String WEATHER_DATA_TEMP_PATH = "/weather_update/temperature";
+    private static final String WEATHER_DATA_HUMIDITY_PATH = "/weather_update/humidity";
+    private static final String WEATHER_DATA_SUMMARY_PATH = "/weather_update/summary";
     private static final String HIGH_KEY = "com.example.android.sunshine.app.sync.key.high_temp";
     private static final String LOW_KEY = "com.example.android.sunshine.app.sync.key.low_temp";
     private static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
@@ -599,27 +601,43 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             double humidity = cursor.getDouble(INDEX_HUMIDITY);
 
             if (connectionResult.isSuccess() && googleApiClient.isConnected()) {
-                PutDataMapRequest dataMap = PutDataMapRequest.create(WEATHER_DATA_ITEM_PATH);
+                PutDataMapRequest tempDataMap = PutDataMapRequest.create(WEATHER_DATA_TEMP_PATH);
+                PutDataMapRequest humidityDataMap = PutDataMapRequest.create(WEATHER_DATA_HUMIDITY_PATH);
+                PutDataMapRequest summaryDataMap = PutDataMapRequest.create(WEATHER_DATA_SUMMARY_PATH);
                 // Store high temperature value
-                dataMap.getDataMap().putDouble(HIGH_KEY, high);
+                tempDataMap.getDataMap().putDouble(HIGH_KEY, high);
                 // Store low temperature value
-                dataMap.getDataMap().putDouble(LOW_KEY, low);
+                tempDataMap.getDataMap().putDouble(LOW_KEY, low);
                 // Store humidity value
-                dataMap.getDataMap().putDouble(HUMIDITY_KEY, humidity);
+                humidityDataMap.getDataMap().putDouble(HUMIDITY_KEY, humidity);
 
                 // TODO: Remove
-                dataMap.getDataMap().putLong("Time", System.currentTimeMillis());
+                tempDataMap.getDataMap().putLong("Time", System.currentTimeMillis());
+                humidityDataMap.getDataMap().putLong("Time", System.currentTimeMillis());
+                summaryDataMap.getDataMap().putLong("Time", System.currentTimeMillis());
 
-                PutDataRequest request = dataMap.asPutDataRequest();
-                request.setUrgent();
+                PutDataRequest tempRequest = tempDataMap.asPutDataRequest();
+                PutDataRequest humidityRequest = tempDataMap.asPutDataRequest();
+                PutDataRequest summaryRequest = tempDataMap.asPutDataRequest();
+                tempRequest.setUrgent();
 
-                // Send weather data to wearable
-                DataApi.DataItemResult result =
-                        Wearable.DataApi.putDataItem(googleApiClient, request).await();
+                // Send temperature data to wearable
+                DataApi.DataItemResult tempResult =
+                        Wearable.DataApi.putDataItem(googleApiClient, tempRequest).await();
+                DataApi.DataItemResult humidityResult =
+                        Wearable.DataApi.putDataItem(googleApiClient, humidityRequest).await();
+                DataApi.DataItemResult summaryResult =
+                        Wearable.DataApi.putDataItem(googleApiClient, summaryRequest).await();
 
-                if (!result.getStatus().isSuccess()) {
-                    Log.e("updateWearData", String.format("Error sending data using DataApi (error code = %d)",
-                            result.getStatus().getStatusCode()));
+                String error = "Error sending data using DataApi (error code = %d)";
+                if (!tempResult.getStatus().isSuccess()) {
+                    Log.e(LOG_TAG, String.format(error, tempResult.getStatus().getStatusCode()));
+                }
+                if (!humidityResult.getStatus().isSuccess()) {
+                    Log.e(LOG_TAG, String.format(error, humidityResult.getStatus().getStatusCode()));
+                }
+                if (!summaryResult.getStatus().isSuccess()) {
+                    Log.e(LOG_TAG, String.format(error, summaryResult.getStatus().getStatusCode()));
                 }
 
             } else {
