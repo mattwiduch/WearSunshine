@@ -390,7 +390,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 updateWidgets();
                 updateMuzei();
                 notifyWeather();
-                updateWearData();
+                if (Utility.isWearAppInstalled(getContext())) {
+                    updateWearData();
+                }
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
