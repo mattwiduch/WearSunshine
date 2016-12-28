@@ -36,17 +36,38 @@ public class ForecastListenerService extends WearableListenerService {
         Log.d(TAG, "onDataChanged: " + dataEventBuffer);
 
         for (DataEvent event : dataEventBuffer) {
-            if (event.getType() == DataEvent.TYPE_CHANGED
-                    && event.getDataItem() != null
-                    && ("/weather_update").equals(event.getDataItem().getUri().getPath())) {
-                // Request complications update only when valid weather data is received
-                ComponentName componentName =
-                        new ComponentName(getApplicationContext(), WeatherProviderService.class);
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem() != null) {
+                if (("/weather_update/temperature").equals(event.getDataItem().getUri().getPath())) {
+                    // Request complications update only when valid weather data is received
+                    ComponentName componentName =
+                            new ComponentName(getApplicationContext(), TemperatureProviderService.class);
 
-                ProviderUpdateRequester providerUpdateRequester =
-                        new ProviderUpdateRequester(getApplicationContext(), componentName);
+                    ProviderUpdateRequester providerUpdateRequester =
+                            new ProviderUpdateRequester(getApplicationContext(), componentName);
 
-                providerUpdateRequester.requestUpdateAll();
+                    providerUpdateRequester.requestUpdateAll();
+                }
+                if (("/weather_update/humidity").equals(event.getDataItem().getUri().getPath())) {
+                    // Request complications update only when valid weather data is received
+                    ComponentName componentName =
+                            new ComponentName(getApplicationContext(), HumidityProviderService.class);
+
+                    ProviderUpdateRequester providerUpdateRequester =
+                            new ProviderUpdateRequester(getApplicationContext(), componentName);
+
+                    providerUpdateRequester.requestUpdateAll();
+                }
+                if (("/weather_update/summary").equals(event.getDataItem().getUri().getPath())) {
+                    // Request complications update only when valid weather data is received
+                    ComponentName componentName =
+                            new ComponentName(getApplicationContext(), SummaryProviderService.class);
+
+                    ProviderUpdateRequester providerUpdateRequester =
+                            new ProviderUpdateRequester(getApplicationContext(), componentName);
+
+                    providerUpdateRequester.requestUpdateAll();
+                }
+
             }
         }
     }
