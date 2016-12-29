@@ -596,8 +596,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             double humidity = cursor.getDouble(INDEX_HUMIDITY);
 
             int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
-            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
-                    Utility.getArtResourceForWeatherCondition(iconId));
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), iconId);
             Asset iconAsset = Utility.createAssetFromBitmap(bitmap);
 
             if (connectionResult.isSuccess() && googleApiClient.isConnected()) {
