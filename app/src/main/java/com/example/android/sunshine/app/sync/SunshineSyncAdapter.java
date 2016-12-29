@@ -617,8 +617,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 summaryDataMap.getDataMap().putLong("Time", System.currentTimeMillis());
 
                 PutDataRequest tempRequest = tempDataMap.asPutDataRequest();
-                PutDataRequest humidityRequest = tempDataMap.asPutDataRequest();
-                PutDataRequest summaryRequest = tempDataMap.asPutDataRequest();
+                PutDataRequest humidityRequest = humidityDataMap.asPutDataRequest();
+                PutDataRequest summaryRequest = summaryDataMap.asPutDataRequest();
                 tempRequest.setUrgent();
 
                 // Send temperature data to wearable
