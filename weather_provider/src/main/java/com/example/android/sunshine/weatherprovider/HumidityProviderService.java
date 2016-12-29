@@ -18,15 +18,14 @@ package com.example.android.sunshine.weatherprovider;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.complications.ComplicationManager;
 import android.support.wearable.complications.ComplicationProviderService;
-import android.support.wearable.complications.ComplicationText;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.util.concurrent.TimeUnit;
@@ -67,40 +66,14 @@ public class HumidityProviderService extends ComplicationProviderService {
             int complicationId, int dataType, ComplicationManager complicationManager) {
         Log.d(TAG, "onComplicationUpdate(): " + complicationId);
 
-        ComplicationData complicationData = null;
-
-        switch (dataType) {
-            case ComplicationData.TYPE_SHORT_TEXT:
-                Log.d(TAG, "TYPE_SHORT_TEXT");
-                complicationData = new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
-                        .setShortText(ComplicationText.plainText("TEXT"))
-                        .build();
-                break;
-            case ComplicationData.TYPE_RANGED_VALUE:
-                Log.d(TAG, "TYPE_RANGED_VALUE");
-                complicationData = new ComplicationData.Builder(ComplicationData.TYPE_RANGED_VALUE)
-                        .setValue(5)
-                        .setMinValue(0)
-                        .setMaxValue(10)
-                        .setShortText(ComplicationText.plainText("RANGE"))
-                        .build();
-                break;
-            default:
-                if (Log.isLoggable(TAG, Log.WARN)) {
-                    Log.w(TAG, "Unexpected complication type " + dataType);
-                }
+        // Create Uri for humidity data
+        Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
+                .authority("*").path("/weather_data/humidity").build();
+        // Retrieve humidity data in background thread
+        if (weatherDataUri != null) {
+            new FetchWeatherAsyncTask(this, weatherDataUri, complicationId, dataType,
+                    complicationManager).execute();
         }
-
-        if (complicationData != null) {
-            complicationManager.updateComplicationData(complicationId, complicationData);
-        }
-
-//        Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
-//                .authority("*").path("/weather_data").build();
-//        //Log.d(TAG, "onComplicationUpdate(): " + weatherDataUri.toString());
-//        if (weatherDataUri != null) {
-//            new FetchWeatherAsyncTask(this).execute(weatherDataUri);
-//        }
     }
 
     /*
@@ -114,22 +87,30 @@ public class HumidityProviderService extends ComplicationProviderService {
     }
 
     /**
-     * A background task to load the weather data via the Wear DataApi.
+     * A background task to load the weather data via Wear DataApi.
      */
     private class FetchWeatherAsyncTask extends
-            AsyncTask<Uri, Void, Void> {
+            AsyncTask<Void, Void, Void> {
 
         private Context mContext;
+        private Uri mWeatherDataUri;
+        private int mComplicationId;
+        private int mDataType;
+        private ComplicationManager mComplicationManager;
 
-        public FetchWeatherAsyncTask(Context context) {
+        public FetchWeatherAsyncTask(Context context, Uri weatherDataUri, int complicationId,
+                                     int dataType, ComplicationManager complicationManager) {
             mContext = context;
+            mWeatherDataUri = weatherDataUri;
+            mComplicationId = complicationId;
+            mDataType = dataType;
+            mComplicationManager = complicationManager;
         }
 
         @Override
-        protected Void doInBackground(Uri... params) {
-            // TODO: Connect to Google API and retrieve data
+        protected Void doInBackground(Void... params) {
             // Connect to Play Services and the Wearable API
-            GoogleApiClient googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
+            GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mContext)
                     .addApi(Wearable.API)
                     .build();
 
@@ -142,9 +123,7 @@ public class HumidityProviderService extends ComplicationProviderService {
             }
 
             DataApi.DataItemResult dataItemResult =
-                    Wearable.DataApi.getDataItem(googleApiClient, params[0]).await();
-
-            Log.d(TAG, "doInBackground: " + params[0].toString());
+                    Wearable.DataApi.getDataItem(googleApiClient, mWeatherDataUri).await();
             return null;
         }
     }
