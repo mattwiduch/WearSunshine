@@ -31,6 +31,7 @@ import android.text.format.Time;
 import android.util.Log;
 
 import com.bumptech.glide.Glide;
+import com.example.android.sunshine.Constants;
 import com.example.android.sunshine.app.BuildConfig;
 import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
@@ -61,7 +62,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
-    public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
+    public final String TAG = SunshineSyncAdapter.class.getSimpleName();
     public static final String ACTION_DATA_UPDATED =
             "com.example.android.sunshine.app.ACTION_DATA_UPDATED";
     // Interval at which to sync with the weather, in seconds.
@@ -70,13 +71,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
-
-    private static final String WEATHER_DATA_TEMP_PATH = "/weather_update/temperature";
-    private static final String WEATHER_DATA_HUMIDITY_PATH = "/weather_update/humidity";
-    private static final String WEATHER_DATA_SUMMARY_PATH = "/weather_update/summary";
-    private static final String HIGH_KEY = "com.example.android.sunshine.app.sync.key.high_temp";
-    private static final String LOW_KEY = "com.example.android.sunshine.app.sync.key.low_temp";
-    private static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
 
     private static final String[] NOTIFY_WEATHER_PROJECTION = new String[]{
             WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
@@ -116,7 +110,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        Log.d(LOG_TAG, "Starting sync");
+        Log.d(TAG, "Starting sync");
 
         // We no longer need just the location String, but also potentially the latitude and
         // longitude, in case we are syncing based on a new Place Picker API result.
@@ -204,12 +198,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             forecastJsonStr = buffer.toString();
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Error ", e);
+            Log.e(TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attempting
             // to parse it.
             setLocationStatus(getContext(), LOCATION_STATUS_SERVER_DOWN);
         } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
+            Log.e(TAG, e.getMessage(), e);
             e.printStackTrace();
             setLocationStatus(getContext(), LOCATION_STATUS_SERVER_INVALID);
         } finally {
@@ -220,7 +214,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 try {
                     reader.close();
                 } catch (final IOException e) {
-                    Log.e(LOG_TAG, "Error closing stream", e);
+                    Log.e(TAG, "Error closing stream", e);
                 }
             }
         }
@@ -396,11 +390,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     updateWearData();
                 }
             }
-            Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
+            Log.d(TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
 
         } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
+            Log.e(TAG, e.getMessage(), e);
             e.printStackTrace();
             setLocationStatus(getContext(), LOCATION_STATUS_SERVER_INVALID);
         }
@@ -485,7 +479,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                                 .fitCenter()
                                 .into(largeIconWidth, largeIconHeight).get();
                     } catch (InterruptedException | ExecutionException e) {
-                        Log.e(LOG_TAG, "Error retrieving large icon from " + artUrl, e);
+                        Log.e(TAG, "Error retrieving large icon from " + artUrl, e);
                         largeIcon = BitmapFactory.decodeResource(resources, artResourceId);
                     }
                     String title = context.getString(R.string.app_name);
@@ -601,15 +595,18 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             double humidity = cursor.getDouble(INDEX_HUMIDITY);
 
             if (connectionResult.isSuccess() && googleApiClient.isConnected()) {
-                PutDataMapRequest tempDataMap = PutDataMapRequest.create(WEATHER_DATA_TEMP_PATH);
-                PutDataMapRequest humidityDataMap = PutDataMapRequest.create(WEATHER_DATA_HUMIDITY_PATH);
-                PutDataMapRequest summaryDataMap = PutDataMapRequest.create(WEATHER_DATA_SUMMARY_PATH);
+                PutDataMapRequest tempDataMap =
+                        PutDataMapRequest.create(Constants.WEATHER_DATA_TEMP_PATH);
+                PutDataMapRequest humidityDataMap =
+                        PutDataMapRequest.create(Constants.WEATHER_DATA_HUMIDITY_PATH);
+                PutDataMapRequest summaryDataMap =
+                        PutDataMapRequest.create(Constants.WEATHER_DATA_SUMMARY_PATH);
                 // Store high temperature value
-                tempDataMap.getDataMap().putDouble(HIGH_KEY, high);
+                tempDataMap.getDataMap().putDouble(Constants.HIGH_KEY, high);
                 // Store low temperature value
-                tempDataMap.getDataMap().putDouble(LOW_KEY, low);
+                tempDataMap.getDataMap().putDouble(Constants.LOW_KEY, low);
                 // Store humidity value
-                humidityDataMap.getDataMap().putDouble(HUMIDITY_KEY, humidity);
+                humidityDataMap.getDataMap().putDouble(Constants.HUMIDITY_KEY, humidity);
 
                 // TODO: Remove
                 tempDataMap.getDataMap().putLong("Time", System.currentTimeMillis());
@@ -619,7 +616,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 PutDataRequest tempRequest = tempDataMap.asPutDataRequest();
                 PutDataRequest humidityRequest = humidityDataMap.asPutDataRequest();
                 PutDataRequest summaryRequest = summaryDataMap.asPutDataRequest();
-                tempRequest.setUrgent();
 
                 // Send temperature data to wearable
                 DataApi.DataItemResult tempResult =
@@ -629,19 +625,21 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 DataApi.DataItemResult summaryResult =
                         Wearable.DataApi.putDataItem(googleApiClient, summaryRequest).await();
 
-                String error = "Error sending data using DataApi (error code = %d)";
                 if (!tempResult.getStatus().isSuccess()) {
-                    Log.e(LOG_TAG, String.format(error, tempResult.getStatus().getStatusCode()));
+                    Log.e(TAG, String.format(Constants.GOOGLE_API_CLIENT_ERROR,
+                            tempResult.getStatus().getStatusCode()));
                 }
                 if (!humidityResult.getStatus().isSuccess()) {
-                    Log.e(LOG_TAG, String.format(error, humidityResult.getStatus().getStatusCode()));
+                    Log.e(TAG, String.format(Constants.GOOGLE_API_CLIENT_ERROR,
+                            humidityResult.getStatus().getStatusCode()));
                 }
                 if (!summaryResult.getStatus().isSuccess()) {
-                    Log.e(LOG_TAG, String.format(error, summaryResult.getStatus().getStatusCode()));
+                    Log.e(TAG, String.format(Constants.GOOGLE_API_CLIENT_ERROR,
+                            summaryResult.getStatus().getStatusCode()));
                 }
 
             } else {
-                Log.e("updateWearData", String.format("Failed to connect to GoogleApiClient (error code = %d)",
+                Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,
                         connectionResult.getErrorCode()));
             }
             googleApiClient.disconnect();

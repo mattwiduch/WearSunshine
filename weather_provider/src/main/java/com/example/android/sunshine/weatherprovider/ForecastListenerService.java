@@ -19,6 +19,7 @@ import android.content.ComponentName;
 import android.support.wearable.complications.ProviderUpdateRequester;
 import android.util.Log;
 
+import com.example.android.sunshine.Constants;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
@@ -32,6 +33,10 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.example.android.sunshine.Constants.HUMIDITY_KEY;
+import static com.example.android.sunshine.Constants.WEATHER_DATA_HUMIDITY_PATH;
+
+
 /**
  * Simple wearable listener service that requests complications data update whenever
  * weather data in the Data Layer API is changed.
@@ -39,12 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 public class ForecastListenerService extends WearableListenerService {
     private static final String TAG = WearableListenerService.class.getSimpleName();
-    private static final String WEATHER_DATA_TEMP_PATH = "/weather_update/temperature";
-    private static final String WEATHER_DATA_HUMIDITY_PATH = "/weather_update/humidity";
-    private static final String WEATHER_DATA_SUMMARY_PATH = "/weather_update/summary";
-    private static final String HIGH_KEY = "com.example.android.sunshine.app.sync.key.high_temp";
-    private static final String LOW_KEY = "com.example.android.sunshine.app.sync.key.low_temp";
-    private static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
@@ -52,7 +51,7 @@ public class ForecastListenerService extends WearableListenerService {
 
         for (DataEvent event : dataEventBuffer) {
             if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem() != null) {
-                if (("/weather_update/temperature").equals(event.getDataItem().getUri().getPath())) {
+                if ((Constants.WEATHER_DATA_TEMP_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Request complications update only when valid weather data is received
                     ComponentName componentName =
                             new ComponentName(getApplicationContext(), TemperatureProviderService.class);
@@ -62,10 +61,10 @@ public class ForecastListenerService extends WearableListenerService {
 
                     providerUpdateRequester.requestUpdateAll();
                 }
-                if ((WEATHER_DATA_HUMIDITY_PATH).equals(event.getDataItem().getUri().getPath())) {
+                if ((Constants.WEATHER_DATA_HUMIDITY_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Get Data
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-                    Double humidity = dataMapItem.getDataMap().getDouble(HUMIDITY_KEY);
+                    Double humidity = dataMapItem.getDataMap().getDouble(Constants.HUMIDITY_KEY);
 
                     // Connect to Google API Client
                     GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
@@ -76,7 +75,7 @@ public class ForecastListenerService extends WearableListenerService {
                             10, TimeUnit.SECONDS);
 
                     if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
-                        Log.e(TAG, String.format("Failed to connect to GoogleApiClient (error code = %d)",
+                        Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,
                                 connectionResult.getErrorCode()));
                         return;
                     }
@@ -90,7 +89,7 @@ public class ForecastListenerService extends WearableListenerService {
                             Wearable.DataApi.putDataItem(googleApiClient, humidityRequest).await();
 
                     if (!humidityResult.getStatus().isSuccess()) {
-                        Log.e(TAG, String.format("Error sending data using DataApi (error code = %d)",
+                        Log.e(TAG, String.format(Constants.GOOGLE_API_CLIENT_ERROR,
                                 humidityResult.getStatus().getStatusCode()));
                     }
 
@@ -106,7 +105,7 @@ public class ForecastListenerService extends WearableListenerService {
 
                     providerUpdateRequester.requestUpdateAll();
                 }
-                if (("/weather_update/summary").equals(event.getDataItem().getUri().getPath())) {
+                if ((Constants.WEATHER_DATA_SUMMARY_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Request complications update only when valid weather data is received
                     ComponentName componentName =
                             new ComponentName(getApplicationContext(), SummaryProviderService.class);

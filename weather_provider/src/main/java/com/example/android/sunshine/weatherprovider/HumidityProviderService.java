@@ -24,6 +24,7 @@ import android.support.wearable.complications.ComplicationProviderService;
 import android.support.wearable.complications.ComplicationText;
 import android.util.Log;
 
+import com.example.android.sunshine.Constants;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
@@ -40,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 public class HumidityProviderService extends ComplicationProviderService {
 
     private static final String TAG = "WeatherProvider";
-    private static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
 
     /*
      * Called when a complication has been activated. The method is for any one-time
@@ -71,12 +71,9 @@ public class HumidityProviderService extends ComplicationProviderService {
             int complicationId, int dataType, ComplicationManager complicationManager) {
         Log.d(TAG, "onComplicationUpdate(): " + complicationId);
 
-
         // Retrieve humidity data in background thread
-//        if (weatherDataUri != null) {
             new FetchWeatherAsyncTask(this, complicationId, dataType,
                     complicationManager).execute();
-//        }
     }
 
     /*
@@ -121,7 +118,7 @@ public class HumidityProviderService extends ComplicationProviderService {
                     10, TimeUnit.SECONDS);
 
             if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
-                Log.e(TAG, String.format("Failed to connect to GoogleApiClient (error code = %d)",
+                Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,
                         connectionResult.getErrorCode()));
             }
 
@@ -129,14 +126,15 @@ public class HumidityProviderService extends ComplicationProviderService {
             NodeApi.GetLocalNodeResult nodeResult = Wearable.NodeApi.getLocalNode(googleApiClient).await();
             // Create Uri for humidity data
             Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
-                    .authority(nodeResult.getNode().getId()).path("/weather_update/humidity").build();
+                    .authority(nodeResult.getNode().getId())
+                    .path(Constants.WEATHER_DATA_HUMIDITY_PATH).build();
 
             DataApi.DataItemResult dataItemResult =
                     Wearable.DataApi.getDataItem(googleApiClient, weatherDataUri).await();
 
             if (dataItemResult.getStatus().isSuccess() && dataItemResult.getDataItem() != null) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItemResult.getDataItem());
-                humidity = dataMapItem.getDataMap().getDouble(HUMIDITY_KEY);
+                humidity = dataMapItem.getDataMap().getDouble(Constants.HUMIDITY_KEY);
             }
 
             googleApiClient.disconnect();
