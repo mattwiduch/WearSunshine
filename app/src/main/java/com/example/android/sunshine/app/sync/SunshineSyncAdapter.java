@@ -40,6 +40,7 @@ import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
@@ -594,6 +595,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             double low = cursor.getDouble(INDEX_MIN_TEMP);
             double humidity = cursor.getDouble(INDEX_HUMIDITY);
 
+            int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
+                    Utility.getArtResourceForWeatherCondition(iconId));
+            Asset iconAsset = Utility.createAssetFromBitmap(bitmap);
+
             if (connectionResult.isSuccess() && googleApiClient.isConnected()) {
                 PutDataMapRequest tempDataMap =
                         PutDataMapRequest.create(Constants.WEATHER_DATA_TEMP_PATH);
@@ -609,6 +615,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         Utility.formatTemperature(context, low));
                 // Store humidity value
                 humidityDataMap.getDataMap().putDouble(Constants.HUMIDITY_KEY, humidity);
+                // Store weather icon asset
+                summaryDataMap.getDataMap().putAsset(Constants.SUMMARY_KEY, iconAsset);
 
                 // TODO: Remove
                 tempDataMap.getDataMap().putLong("Time", System.currentTimeMillis());

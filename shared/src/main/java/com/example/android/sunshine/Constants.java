@@ -29,6 +29,7 @@ public class Constants {
     public static final String HIGH_KEY = "com.example.android.sunshine.app.sync.key.high_temp";
     public static final String LOW_KEY = "com.example.android.sunshine.app.sync.key.low_temp";
     public static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
+    public static final String SUMMARY_KEY = "com.example.android.sunshine.app.sync.key.summary";
 
     // GoogleApiClient connection timeout (10 seconds)
     public static final int GOOGLE_API_CLIENT_TIMEOUT = 10;
