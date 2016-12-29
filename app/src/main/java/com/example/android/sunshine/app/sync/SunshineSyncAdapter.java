@@ -602,9 +602,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 PutDataMapRequest summaryDataMap =
                         PutDataMapRequest.create(Constants.WEATHER_DATA_SUMMARY_PATH);
                 // Store high temperature value
-                tempDataMap.getDataMap().putDouble(Constants.HIGH_KEY, high);
+                tempDataMap.getDataMap().putString(Constants.HIGH_KEY,
+                        Utility.formatTemperature(context, high));
                 // Store low temperature value
-                tempDataMap.getDataMap().putDouble(Constants.LOW_KEY, low);
+                tempDataMap.getDataMap().putString(Constants.LOW_KEY,
+                        Utility.formatTemperature(context, low));
                 // Store humidity value
                 humidityDataMap.getDataMap().putDouble(Constants.HUMIDITY_KEY, humidity);
 

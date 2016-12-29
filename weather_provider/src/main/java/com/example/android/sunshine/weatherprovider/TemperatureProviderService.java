@@ -24,9 +24,13 @@ import android.support.wearable.complications.ComplicationProviderService;
 import android.support.wearable.complications.ComplicationText;
 import android.util.Log;
 
+import com.example.android.sunshine.Constants;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.util.concurrent.TimeUnit;
@@ -67,40 +71,8 @@ public class TemperatureProviderService extends ComplicationProviderService {
             int complicationId, int dataType, ComplicationManager complicationManager) {
         Log.d(TAG, "onTemperatureComplicationUpdate(): " + complicationId);
 
-        ComplicationData complicationData = null;
-
-        switch (dataType) {
-            case ComplicationData.TYPE_SHORT_TEXT:
-                Log.d(TAG, "TYPE_SHORT_TEXT");
-                complicationData = new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
-                        .setShortText(ComplicationText.plainText("TEMP_TXT"))
-                        .build();
-                break;
-            case ComplicationData.TYPE_RANGED_VALUE:
-                Log.d(TAG, "TYPE_RANGED_VALUE");
-                complicationData = new ComplicationData.Builder(ComplicationData.TYPE_RANGED_VALUE)
-                        .setValue(5)
-                        .setMinValue(0)
-                        .setMaxValue(10)
-                        .setShortText(ComplicationText.plainText("TEMP_R"))
-                        .build();
-                break;
-            default:
-                if (Log.isLoggable(TAG, Log.WARN)) {
-                    Log.w(TAG, "Unexpected temperature complication type " + dataType);
-                }
-        }
-
-        if (complicationData != null) {
-            complicationManager.updateComplicationData(complicationId, complicationData);
-        }
-
-//        Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
-//                .authority("*").path("/weather_data").build();
-//        //Log.d(TAG, "onComplicationUpdate(): " + weatherDataUri.toString());
-//        if (weatherDataUri != null) {
-//            new FetchWeatherAsyncTask(this).execute(weatherDataUri);
-//        }
+        // Retrieve temperature data in background thread
+        new FetchWeatherAsyncTask(this, complicationId, dataType, complicationManager).execute();
     }
 
     /*
@@ -114,38 +86,95 @@ public class TemperatureProviderService extends ComplicationProviderService {
     }
 
     /**
-     * A background task to load the weather data via the Wear DataApi.
+     * A background task to load the weather data via Wear DataApi.
      */
     private class FetchWeatherAsyncTask extends
-            AsyncTask<Uri, Void, Void> {
+            AsyncTask<Void, Void, DataWrapper> {
 
         private Context mContext;
+        private int mComplicationId;
+        private int mDataType;
+        private ComplicationManager mComplicationManager;
 
-        public FetchWeatherAsyncTask(Context context) {
+        public FetchWeatherAsyncTask(Context context, int complicationId,
+                                     int dataType, ComplicationManager complicationManager) {
             mContext = context;
+            mComplicationId = complicationId;
+            mDataType = dataType;
+            mComplicationManager = complicationManager;
         }
 
         @Override
-        protected Void doInBackground(Uri... params) {
-            // TODO: Connect to Google API and retrieve data
+        protected DataWrapper doInBackground(Void... params) {
+            String low = "";
+            String high = "";
+
             // Connect to Play Services and the Wearable API
-            GoogleApiClient googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
+            GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mContext)
                     .addApi(Wearable.API)
                     .build();
 
             ConnectionResult connectionResult = googleApiClient.blockingConnect(
-                    10, TimeUnit.SECONDS);
+                    Constants.GOOGLE_API_CLIENT_TIMEOUT, TimeUnit.SECONDS);
 
             if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
-                Log.e(TAG, String.format("Failed to connect to GoogleApiClient (error code = %d)",
+                Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,
                         connectionResult.getErrorCode()));
             }
 
-            DataApi.DataItemResult dataItemResult =
-                    Wearable.DataApi.getDataItem(googleApiClient, params[0]).await();
+            // Get wearable's node it
+            NodeApi.GetLocalNodeResult nodeResult = Wearable.NodeApi.getLocalNode(googleApiClient).await();
+            // Create Uri for temperature data
+            Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
+                    .authority(nodeResult.getNode().getId())
+                    .path(Constants.WEATHER_DATA_TEMP_PATH).build();
 
-            Log.d(TAG, "doInBackground: " + params[0].toString());
-            return null;
+            DataApi.DataItemResult dataItemResult =
+                    Wearable.DataApi.getDataItem(googleApiClient, weatherDataUri).await();
+
+            if (dataItemResult.getStatus().isSuccess() && dataItemResult.getDataItem() != null) {
+                DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItemResult.getDataItem());
+                low = dataMapItem.getDataMap().getString(Constants.LOW_KEY);
+                high = dataMapItem.getDataMap().getString(Constants.HIGH_KEY);
+            }
+
+            googleApiClient.disconnect();
+
+            return new DataWrapper(low, high);
+        }
+
+        @Override
+        protected void onPostExecute(DataWrapper data) {
+            ComplicationData complicationData = null;
+
+            switch (mDataType) {
+                case ComplicationData.TYPE_SHORT_TEXT:
+                    Log.d(TAG, "TYPE_SHORT_TEXT");
+                    complicationData = new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
+                            .setShortTitle(ComplicationText.plainText(data.mLow))
+                            .setShortText(ComplicationText.plainText(data.mHigh))
+                            .build();
+                    break;
+                default:
+                    if (Log.isLoggable(TAG, Log.WARN)) {
+                        Log.w(TAG, "Unexpected temperature complication type " + mDataType);
+                    }
+            }
+
+            if (complicationData != null) {
+                mComplicationManager.updateComplicationData(mComplicationId, complicationData);
+            }
+        }
+    }
+
+    /** Helper class used to pass retrieved data to OnPostExecute **/
+    private class DataWrapper {
+        private String mLow;
+        private String mHigh;
+
+        DataWrapper(String low, String high) {
+            mLow = low;
+            mHigh = high;
         }
     }
 }

@@ -64,14 +64,14 @@ public class ForecastListenerService extends WearableListenerService {
                 if ((Constants.WEATHER_DATA_TEMP_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Get Data
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-                    Double low = dataMapItem.getDataMap().getDouble(Constants.LOW_KEY);
-                    Double high = dataMapItem.getDataMap().getDouble(Constants.HIGH_KEY);
+                    String low = dataMapItem.getDataMap().getString(Constants.LOW_KEY);
+                    String high = dataMapItem.getDataMap().getString(Constants.HIGH_KEY);
 
                     // Update local temperature data
                     PutDataMapRequest temperatureDataMap =
                             PutDataMapRequest.create(Constants.WEATHER_DATA_TEMP_PATH);
-                    temperatureDataMap.getDataMap().putDouble(Constants.LOW_KEY, low);
-                    temperatureDataMap.getDataMap().putDouble(Constants.HIGH_KEY, high);
+                    temperatureDataMap.getDataMap().putString(Constants.LOW_KEY, low);
+                    temperatureDataMap.getDataMap().putString(Constants.HIGH_KEY, high);
                     PutDataRequest temperatureRequest = temperatureDataMap.asPutDataRequest();
                     temperatureRequest.setUrgent();
                     DataApi.DataItemResult temperatureResult =
