@@ -25,6 +25,7 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class HumidityProviderService extends ComplicationProviderService {
 
     private static final String TAG = "WeatherProvider";
+    private static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
 
     /*
      * Called when a complication has been activated. The method is for any one-time
@@ -90,7 +92,7 @@ public class HumidityProviderService extends ComplicationProviderService {
      * A background task to load the weather data via Wear DataApi.
      */
     private class FetchWeatherAsyncTask extends
-            AsyncTask<Void, Void, Void> {
+            AsyncTask<Void, Void, Double> {
 
         private Context mContext;
         private Uri mWeatherDataUri;
@@ -108,7 +110,9 @@ public class HumidityProviderService extends ComplicationProviderService {
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Double doInBackground(Void... params) {
+            Double humidity = 0d;
+
             // Connect to Play Services and the Wearable API
             GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mContext)
                     .addApi(Wearable.API)
@@ -124,7 +128,15 @@ public class HumidityProviderService extends ComplicationProviderService {
 
             DataApi.DataItemResult dataItemResult =
                     Wearable.DataApi.getDataItem(googleApiClient, mWeatherDataUri).await();
-            return null;
+
+            if (dataItemResult.getStatus().isSuccess() && dataItemResult.getDataItem() != null) {
+                DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItemResult.getDataItem());
+                humidity = dataMapItem.getDataMap().getDouble(HUMIDITY_KEY);
+            }
+
+            googleApiClient.disconnect();
+
+            return humidity;
         }
     }
 }
