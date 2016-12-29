@@ -18,8 +18,10 @@ package com.example.android.sunshine.weatherprovider;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.complications.ComplicationManager;
 import android.support.wearable.complications.ComplicationProviderService;
+import android.support.wearable.complications.ComplicationText;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -137,6 +139,42 @@ public class HumidityProviderService extends ComplicationProviderService {
             googleApiClient.disconnect();
 
             return humidity;
+        }
+
+        @Override
+        protected void onPostExecute(Double humidity) {
+            ComplicationData complicationData = null;
+            String formattedHumidity = String.format("%d%%", humidity.intValue());
+
+            switch (mDataType) {
+                case ComplicationData.TYPE_SHORT_TEXT:
+                    Log.d(TAG, "TYPE_SHORT_TEXT");
+                    complicationData = new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
+                            .setShortTitle(ComplicationText.plainText(
+                                    getString(R.string.complications_humidity_label)))
+                            .setShortText(ComplicationText.plainText(formattedHumidity))
+                            .build();
+                    break;
+                case ComplicationData.TYPE_RANGED_VALUE:
+                    Log.d(TAG, "TYPE_RANGED_VALUE");
+                    complicationData = new ComplicationData.Builder(ComplicationData.TYPE_RANGED_VALUE)
+                            .setValue(humidity.floatValue())
+                            .setMinValue(0f)
+                            .setMaxValue(100f)
+                            .setShortTitle(ComplicationText.plainText(
+                                    getString(R.string.complications_humidity_label)))
+                            .setShortText(ComplicationText.plainText(formattedHumidity))
+                            .build();
+                    break;
+                default:
+                    if (Log.isLoggable(TAG, Log.WARN)) {
+                        Log.w(TAG, "Unexpected temperature complication type " + mDataType);
+                    }
+            }
+
+            if (complicationData != null) {
+                mComplicationManager.updateComplicationData(mComplicationId, complicationData);
+            }
         }
     }
 }
