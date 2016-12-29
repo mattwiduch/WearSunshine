@@ -49,39 +49,33 @@ public class ForecastListenerService extends WearableListenerService {
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         Log.d(TAG, "onDataChanged: " + dataEventBuffer);
 
+        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .build();
+
+        // Connect to Google API Client
+        ConnectionResult connectionResult = googleApiClient.blockingConnect(
+                Constants.GOOGLE_API_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+        if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
+            Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,
+                    connectionResult.getErrorCode()));
+            return;
+        }
+
         for (DataEvent event : dataEventBuffer) {
             if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem() != null) {
                 if ((Constants.WEATHER_DATA_TEMP_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Request complications update only when valid weather data is received
-                    ComponentName componentName =
-                            new ComponentName(getApplicationContext(), TemperatureProviderService.class);
-
-                    ProviderUpdateRequester providerUpdateRequester =
-                            new ProviderUpdateRequester(getApplicationContext(), componentName);
-
-                    providerUpdateRequester.requestUpdateAll();
+                    requestComplicationUpdate(TemperatureProviderService.class);
                 }
                 if ((Constants.WEATHER_DATA_HUMIDITY_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Get Data
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                     Double humidity = dataMapItem.getDataMap().getDouble(Constants.HUMIDITY_KEY);
 
-                    // Connect to Google API Client
-                    GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
-                            .addApi(Wearable.API)
-                            .build();
-
-                    ConnectionResult connectionResult = googleApiClient.blockingConnect(
-                            10, TimeUnit.SECONDS);
-
-                    if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
-                        Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,
-                                connectionResult.getErrorCode()));
-                        return;
-                    }
-
-                    // Update data locally
-                    PutDataMapRequest humidityDataMap = PutDataMapRequest.create(WEATHER_DATA_HUMIDITY_PATH);
+                    // Update local humidity data
+                    PutDataMapRequest humidityDataMap =
+                            PutDataMapRequest.create(WEATHER_DATA_HUMIDITY_PATH);
                     humidityDataMap.getDataMap().putDouble(HUMIDITY_KEY, humidity);
                     PutDataRequest humidityRequest = humidityDataMap.asPutDataRequest();
                     humidityRequest.setUrgent();
@@ -93,30 +87,32 @@ public class ForecastListenerService extends WearableListenerService {
                                 humidityResult.getStatus().getStatusCode()));
                     }
 
-                    // Disconnect
-                    googleApiClient.disconnect();
-
                     // Request complications update only when valid weather data is received
-                    ComponentName componentName =
-                            new ComponentName(getApplicationContext(), HumidityProviderService.class);
-
-                    ProviderUpdateRequester providerUpdateRequester =
-                            new ProviderUpdateRequester(getApplicationContext(), componentName);
-
-                    providerUpdateRequester.requestUpdateAll();
+                    requestComplicationUpdate(HumidityProviderService.class);
                 }
                 if ((Constants.WEATHER_DATA_SUMMARY_PATH).equals(event.getDataItem().getUri().getPath())) {
                     // Request complications update only when valid weather data is received
-                    ComponentName componentName =
-                            new ComponentName(getApplicationContext(), SummaryProviderService.class);
-
-                    ProviderUpdateRequester providerUpdateRequester =
-                            new ProviderUpdateRequester(getApplicationContext(), componentName);
-
-                    providerUpdateRequester.requestUpdateAll();
+                    requestComplicationUpdate(SummaryProviderService.class);
                 }
-
             }
         }
+
+        // Disconnect the client
+        googleApiClient.disconnect();
+    }
+
+    /**
+     * Helper method that triggers complication update request.
+     *
+     * @param cls Complication provider class to be updated
+     */
+    private void requestComplicationUpdate(Class<?> cls) {
+        ComponentName componentName =
+                new ComponentName(getApplicationContext(), cls);
+
+        ProviderUpdateRequester providerUpdateRequester =
+                new ProviderUpdateRequester(getApplicationContext(), componentName);
+
+        providerUpdateRequester.requestUpdateAll();
     }
 }
