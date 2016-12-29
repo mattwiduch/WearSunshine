@@ -19,9 +19,18 @@ import android.content.ComponentName;
 import android.support.wearable.complications.ProviderUpdateRequester;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simple wearable listener service that requests complications data update whenever
@@ -30,6 +39,12 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 public class ForecastListenerService extends WearableListenerService {
     private static final String TAG = WearableListenerService.class.getSimpleName();
+    private static final String WEATHER_DATA_TEMP_PATH = "/weather_update/temperature";
+    private static final String WEATHER_DATA_HUMIDITY_PATH = "/weather_update/humidity";
+    private static final String WEATHER_DATA_SUMMARY_PATH = "/weather_update/summary";
+    private static final String HIGH_KEY = "com.example.android.sunshine.app.sync.key.high_temp";
+    private static final String LOW_KEY = "com.example.android.sunshine.app.sync.key.low_temp";
+    private static final String HUMIDITY_KEY = "com.example.android.sunshine.app.sync.key.humidity";
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
@@ -47,7 +62,41 @@ public class ForecastListenerService extends WearableListenerService {
 
                     providerUpdateRequester.requestUpdateAll();
                 }
-                if (("/weather_update/humidity").equals(event.getDataItem().getUri().getPath())) {
+                if ((WEATHER_DATA_HUMIDITY_PATH).equals(event.getDataItem().getUri().getPath())) {
+                    // Get Data
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                    Double humidity = dataMapItem.getDataMap().getDouble(HUMIDITY_KEY);
+
+                    // Connect to Google API Client
+                    GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
+                            .addApi(Wearable.API)
+                            .build();
+
+                    ConnectionResult connectionResult = googleApiClient.blockingConnect(
+                            10, TimeUnit.SECONDS);
+
+                    if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
+                        Log.e(TAG, String.format("Failed to connect to GoogleApiClient (error code = %d)",
+                                connectionResult.getErrorCode()));
+                        return;
+                    }
+
+                    // Update data locally
+                    PutDataMapRequest humidityDataMap = PutDataMapRequest.create(WEATHER_DATA_HUMIDITY_PATH);
+                    humidityDataMap.getDataMap().putDouble(HUMIDITY_KEY, humidity);
+                    PutDataRequest humidityRequest = humidityDataMap.asPutDataRequest();
+                    humidityRequest.setUrgent();
+                    DataApi.DataItemResult humidityResult =
+                            Wearable.DataApi.putDataItem(googleApiClient, humidityRequest).await();
+
+                    if (!humidityResult.getStatus().isSuccess()) {
+                        Log.e(TAG, String.format("Error sending data using DataApi (error code = %d)",
+                                humidityResult.getStatus().getStatusCode()));
+                    }
+
+                    // Disconnect
+                    googleApiClient.disconnect();
+
                     // Request complications update only when valid weather data is received
                     ComponentName componentName =
                             new ComponentName(getApplicationContext(), HumidityProviderService.class);
