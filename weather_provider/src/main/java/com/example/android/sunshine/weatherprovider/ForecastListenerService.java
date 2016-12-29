@@ -33,9 +33,6 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.example.android.sunshine.Constants.HUMIDITY_KEY;
-import static com.example.android.sunshine.Constants.WEATHER_DATA_HUMIDITY_PATH;
-
 
 /**
  * Simple wearable listener service that requests complications data update whenever
@@ -65,6 +62,26 @@ public class ForecastListenerService extends WearableListenerService {
         for (DataEvent event : dataEventBuffer) {
             if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem() != null) {
                 if ((Constants.WEATHER_DATA_TEMP_PATH).equals(event.getDataItem().getUri().getPath())) {
+                    // Get Data
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                    Double low = dataMapItem.getDataMap().getDouble(Constants.LOW_KEY);
+                    Double high = dataMapItem.getDataMap().getDouble(Constants.HIGH_KEY);
+
+                    // Update local temperature data
+                    PutDataMapRequest temperatureDataMap =
+                            PutDataMapRequest.create(Constants.WEATHER_DATA_TEMP_PATH);
+                    temperatureDataMap.getDataMap().putDouble(Constants.LOW_KEY, low);
+                    temperatureDataMap.getDataMap().putDouble(Constants.HIGH_KEY, high);
+                    PutDataRequest temperatureRequest = temperatureDataMap.asPutDataRequest();
+                    temperatureRequest.setUrgent();
+                    DataApi.DataItemResult temperatureResult =
+                            Wearable.DataApi.putDataItem(googleApiClient, temperatureRequest).await();
+
+                    if (!temperatureResult.getStatus().isSuccess()) {
+                        Log.e(TAG, String.format(Constants.GOOGLE_API_CLIENT_ERROR,
+                                temperatureResult.getStatus().getStatusCode()));
+                    }
+
                     // Request complications update only when valid weather data is received
                     requestComplicationUpdate(TemperatureProviderService.class);
                 }
@@ -75,8 +92,8 @@ public class ForecastListenerService extends WearableListenerService {
 
                     // Update local humidity data
                     PutDataMapRequest humidityDataMap =
-                            PutDataMapRequest.create(WEATHER_DATA_HUMIDITY_PATH);
-                    humidityDataMap.getDataMap().putDouble(HUMIDITY_KEY, humidity);
+                            PutDataMapRequest.create(Constants.WEATHER_DATA_HUMIDITY_PATH);
+                    humidityDataMap.getDataMap().putDouble(Constants.HUMIDITY_KEY, humidity);
                     PutDataRequest humidityRequest = humidityDataMap.asPutDataRequest();
                     humidityRequest.setUrgent();
                     DataApi.DataItemResult humidityResult =
