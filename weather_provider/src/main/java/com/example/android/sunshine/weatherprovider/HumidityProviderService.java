@@ -115,7 +115,7 @@ public class HumidityProviderService extends ComplicationProviderService {
                     .build();
 
             ConnectionResult connectionResult = googleApiClient.blockingConnect(
-                    10, TimeUnit.SECONDS);
+                    Constants.GOOGLE_API_CLIENT_TIMEOUT, TimeUnit.SECONDS);
 
             if (!connectionResult.isSuccess() || !googleApiClient.isConnected()) {
                 Log.e(TAG, String.format(Constants.GOOGLE_API_CONNECTION_ERROR,

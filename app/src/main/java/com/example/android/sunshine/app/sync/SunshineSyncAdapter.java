@@ -587,7 +587,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             // It's OK to use blockingConnect() here as we are running in an
             // IntentService that executes work on a separate (background) thread.
             ConnectionResult connectionResult = googleApiClient.blockingConnect(
-                    10, TimeUnit.SECONDS);
+                    Constants.GOOGLE_API_CLIENT_TIMEOUT, TimeUnit.SECONDS);
 
             int weatherId = cursor.getInt(INDEX_WEATHER_ID);
             double high = cursor.getDouble(INDEX_MAX_TEMP);
