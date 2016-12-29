@@ -22,6 +22,7 @@ import android.util.Log;
 import com.example.android.sunshine.Constants;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -108,6 +109,24 @@ public class ForecastListenerService extends WearableListenerService {
                     requestComplicationUpdate(HumidityProviderService.class);
                 }
                 if ((Constants.WEATHER_DATA_SUMMARY_PATH).equals(event.getDataItem().getUri().getPath())) {
+                    // Get Data
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                    Asset summary = dataMapItem.getDataMap().getAsset(Constants.SUMMARY_KEY);
+
+                    // Update local summary data
+                    PutDataMapRequest summaryDataMap =
+                            PutDataMapRequest.create(Constants.WEATHER_DATA_SUMMARY_PATH);
+                    summaryDataMap.getDataMap().putAsset(Constants.SUMMARY_KEY, summary);
+                    PutDataRequest summaryRequest = summaryDataMap.asPutDataRequest();
+                    summaryRequest.setUrgent();
+                    DataApi.DataItemResult summaryResult =
+                            Wearable.DataApi.putDataItem(googleApiClient, summaryRequest).await();
+
+                    if (!summaryResult.getStatus().isSuccess()) {
+                        Log.e(TAG, String.format(Constants.GOOGLE_API_CLIENT_ERROR,
+                                summaryResult.getStatus().getStatusCode()));
+                    }
+
                     // Request complications update only when valid weather data is received
                     requestComplicationUpdate(SummaryProviderService.class);
                 }
