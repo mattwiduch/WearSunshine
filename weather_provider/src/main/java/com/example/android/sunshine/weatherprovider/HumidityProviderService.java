@@ -28,6 +28,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
@@ -70,14 +71,12 @@ public class HumidityProviderService extends ComplicationProviderService {
             int complicationId, int dataType, ComplicationManager complicationManager) {
         Log.d(TAG, "onComplicationUpdate(): " + complicationId);
 
-        // Create Uri for humidity data
-        Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
-                .authority("*").path("/weather_data/humidity").build();
+
         // Retrieve humidity data in background thread
-        if (weatherDataUri != null) {
-            new FetchWeatherAsyncTask(this, weatherDataUri, complicationId, dataType,
+//        if (weatherDataUri != null) {
+            new FetchWeatherAsyncTask(this, complicationId, dataType,
                     complicationManager).execute();
-        }
+//        }
     }
 
     /*
@@ -97,15 +96,13 @@ public class HumidityProviderService extends ComplicationProviderService {
             AsyncTask<Void, Void, Double> {
 
         private Context mContext;
-        private Uri mWeatherDataUri;
         private int mComplicationId;
         private int mDataType;
         private ComplicationManager mComplicationManager;
 
-        public FetchWeatherAsyncTask(Context context, Uri weatherDataUri, int complicationId,
+        public FetchWeatherAsyncTask(Context context, int complicationId,
                                      int dataType, ComplicationManager complicationManager) {
             mContext = context;
-            mWeatherDataUri = weatherDataUri;
             mComplicationId = complicationId;
             mDataType = dataType;
             mComplicationManager = complicationManager;
@@ -128,8 +125,14 @@ public class HumidityProviderService extends ComplicationProviderService {
                         connectionResult.getErrorCode()));
             }
 
+            // Get wearable's node it
+            NodeApi.GetLocalNodeResult nodeResult = Wearable.NodeApi.getLocalNode(googleApiClient).await();
+            // Create Uri for humidity data
+            Uri weatherDataUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME)
+                    .authority(nodeResult.getNode().getId()).path("/weather_update/humidity").build();
+
             DataApi.DataItemResult dataItemResult =
-                    Wearable.DataApi.getDataItem(googleApiClient, mWeatherDataUri).await();
+                    Wearable.DataApi.getDataItem(googleApiClient, weatherDataUri).await();
 
             if (dataItemResult.getStatus().isSuccess() && dataItemResult.getDataItem() != null) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItemResult.getDataItem());
