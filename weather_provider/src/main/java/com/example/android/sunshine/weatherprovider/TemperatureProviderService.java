@@ -153,6 +153,7 @@ public class TemperatureProviderService extends ComplicationProviderService {
                     complicationData = new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
                             .setShortTitle(ComplicationText.plainText(data.mLow))
                             .setShortText(ComplicationText.plainText(data.mHigh))
+                            .setTapAction(MessageService.getLaunchSunshineIntent(mContext))
                             .build();
                     break;
                 default:

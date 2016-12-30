@@ -167,6 +167,7 @@ public class SummaryProviderService extends ComplicationProviderService {
                     complicationData = new ComplicationData.Builder(ComplicationData.TYPE_SMALL_IMAGE)
                             .setImageStyle(ComplicationData.IMAGE_STYLE_ICON)
                             .setSmallImage(Icon.createWithBitmap(icon))
+                            .setTapAction(MessageService.getLaunchSunshineIntent(mContext))
                             .build();
                     break;
                 default:

@@ -159,6 +159,7 @@ public class HumidityProviderService extends ComplicationProviderService {
                             .setShortTitle(ComplicationText.plainText(
                                     getString(R.string.complications_humidity_label)))
                             .setShortText(ComplicationText.plainText(formattedHumidity))
+                            .setTapAction(MessageService.getLaunchSunshineIntent(mContext))
                             .build();
                     break;
                 case ComplicationData.TYPE_RANGED_VALUE:
@@ -170,6 +171,7 @@ public class HumidityProviderService extends ComplicationProviderService {
                             .setShortTitle(ComplicationText.plainText(
                                     getString(R.string.complications_humidity_label)))
                             .setShortText(ComplicationText.plainText(formattedHumidity))
+                            .setTapAction(MessageService.getLaunchSunshineIntent(mContext))
                             .build();
                     break;
                 default:
