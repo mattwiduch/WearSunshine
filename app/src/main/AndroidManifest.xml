@@ -183,10 +183,14 @@
             android:name=".gcm.RegistrationIntentService"
             android:exported="false">
         </service>
-        <!-- Service that syncs app data with wear device -->
-        <service
-            android:name="com.example.android.sunshine.app.sync.WearSyncService"
-            android:exported="false"/>
+        <!-- Service that receives messages from the wear device -->
+        <service android:name=".sync.SunshineWearListener">
+            <intent-filter>
+                <!-- listeners receive events that match the action and data filters -->
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:path="/launch_sunshine" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
