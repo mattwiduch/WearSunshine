@@ -59,13 +59,24 @@
     <string name="pref_location_error_description">Invalid Location (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
     <string name="pref_location_unknown_description">Validating Location... (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
 
-    <!-- Strings related to Notification Enabled preference -->
-    <string name="pref_enable_notifications_key" translatable="false">enable_notifications</string>
-    <string name="pref_enable_notifications_label">Weather Notifications</string>
+    <!-- Strings used for displaying preference group labels  -->
+    <string name="pref_group_general_label">General</string>
+    <string name="pref_group_notifications_label">Notifications</string>
+    <string name="pref_group_icons_label">Icons</string>
 
+    <!-- Strings related to Show Notifications preference -->
+    <string name="pref_enable_notifications_key" translatable="false">enable_notifications</string>
+    <string name="pref_enable_notifications_label">Show Notifications</string>
     <string name="pref_enable_notifications_true">Enabled</string>
     <string name="pref_enable_notifications_false">Not Enabled</string>
     <string name="pref_enable_notifications_default" translatable="false">true</string>
+
+    <!-- Strings related to Android Wear notifications preference -->
+    <string name="pref_enable_wear_notifications_key" translatable="false">enable_wear_notifications</string>
+    <string name="pref_enable_wear_notifications_label">Android Wear Notifications</string>
+    <string name="pref_enable_wear_notifications_true">Enabled</string>
+    <string name="pref_enable_wear_notifications_false">Not Enabled</string>
+    <string name="pref_enable_wear_notifications_default" translatable="false">true</string>
 
     <!-- Strings for formatting weather-related data -->
 
@@ -165,6 +176,11 @@
     <string name="a11y_humidity">Humidity: <xliff:g id="humidity">%1$s</xliff:g></string>
     <string name="a11y_pressure">Barometric Pressure: <xliff:g id="pressure">%1$s</xliff:g></string>
     <string name="a11y_wind">Wind speed and direction: <xliff:g id="wind">%1$s</xliff:g></string>
+
+    <!-- Wear -->
+    <string name="wear_humidity">Humidity: <xliff:g id="humidity">%1$s</xliff:g></string>
+    <string name="wear_pressure">Pressure: <xliff:g id="pressure">%1$s</xliff:g></string>
+    <string name="wear_wind">Wind: <xliff:g id="wind">%1$s</xliff:g></string>
 
     <!-- Weather Conditions -->
     <string name="condition_2xx">Storm</string>

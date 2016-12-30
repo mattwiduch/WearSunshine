@@ -26,7 +26,6 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import com.example.android.sunshine.app.data.WeatherContract;
@@ -178,6 +177,9 @@ public class SettingsActivity extends PreferenceActivity
         } else if ( key.equals(getString(R.string.pref_art_pack_key)) ) {
             // art pack have changed. update lists of weather entries accordingly
             getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
+        } else if ( key.equals(getString(R.string.pref_enable_notifications_key)) ||
+                key.equals(getString(R.string.pref_enable_wear_notifications_key))) {
+            SunshineSyncAdapter.syncImmediately(this);
         }
     }
 
