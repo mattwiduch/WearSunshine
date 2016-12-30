@@ -25,6 +25,9 @@ public class Constants {
     public static final String WEATHER_DATA_HUMIDITY_PATH = "/weather_update/humidity";
     public static final String WEATHER_DATA_SUMMARY_PATH = "/weather_update/summary";
 
+    // Paths to messages sent through DataLayer API
+    public static final String LAUNCH_SUNSHINE_MESSAGE_PATH = "/launch_sunshine";
+
     // Keys used to store weather data in DataLayer API
     public static final String HIGH_KEY = "com.example.android.sunshine.app.sync.key.high_temp";
     public static final String LOW_KEY = "com.example.android.sunshine.app.sync.key.low_temp";
