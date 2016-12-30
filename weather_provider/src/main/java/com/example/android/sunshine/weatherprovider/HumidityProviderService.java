@@ -107,7 +107,7 @@ public class HumidityProviderService extends ComplicationProviderService {
 
         @Override
         protected Double doInBackground(Void... params) {
-            Double humidity = 0d;
+            Double humidity = -1d;
 
             // Connect to Play Services and the Wearable API
             GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mContext)
@@ -145,7 +145,12 @@ public class HumidityProviderService extends ComplicationProviderService {
         @Override
         protected void onPostExecute(Double humidity) {
             ComplicationData complicationData = null;
-            String formattedHumidity = String.format("%d%%", humidity.intValue());
+            String formattedHumidity;
+            if (humidity < 0) {
+                formattedHumidity = getString(R.string.complications_no_data);
+            } else {
+                formattedHumidity = String.format("%d%%", humidity.intValue());
+            }
 
             switch (mDataType) {
                 case ComplicationData.TYPE_SHORT_TEXT:

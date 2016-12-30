@@ -106,8 +106,8 @@ public class TemperatureProviderService extends ComplicationProviderService {
 
         @Override
         protected DataWrapper doInBackground(Void... params) {
-            String low = "";
-            String high = "";
+            String low = getString(R.string.complications_temperature_label);
+            String high = getString(R.string.complications_no_data);
 
             // Connect to Play Services and the Wearable API
             GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mContext)

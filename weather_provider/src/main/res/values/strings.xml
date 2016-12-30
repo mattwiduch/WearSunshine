@@ -4,4 +4,6 @@
     <string name="complications_humidity">Humidity</string>
     <string name="complications_summary">Summary</string>
     <string name="complications_humidity_label">rh</string>
+    <string name="complications_temperature_label">temp</string>
+    <string name="complications_no_data">--</string>
 </resources>
