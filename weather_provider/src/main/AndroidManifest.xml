@@ -37,7 +37,7 @@
                 android:value="SHORT_TEXT"/>
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="600"/>
+                android:value="0"/>
         </service>
 
         <!-- Humidity Complications Provider Service -->
@@ -55,7 +55,7 @@
                 android:value="RANGED_VALUE,SHORT_TEXT"/>
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="600"/>
+                android:value="0"/>
         </service>
 
         <!-- Summary Complications Provider Service -->
@@ -73,7 +73,7 @@
                 android:value="SMALL_IMAGE"/>
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="600"/>
+                android:value="0"/>
         </service>
     </application>
 
