@@ -25,7 +25,7 @@
         <!-- Temperature Complications Provider Service -->
         <service
             android:name=".TemperatureProviderService"
-            android:icon="@drawable/ic_cc_checkmark"
+            android:icon="@drawable/thermometer_lines"
             android:label="@string/complications_temperature"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -43,7 +43,7 @@
         <!-- Humidity Complications Provider Service -->
         <service
             android:name=".HumidityProviderService"
-            android:icon="@drawable/ic_cc_clear"
+            android:icon="@drawable/water_percent"
             android:label="@string/complications_humidity"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -61,7 +61,7 @@
         <!-- Summary Complications Provider Service -->
         <service
             android:name=".SummaryProviderService"
-            android:icon="@drawable/ic_full_sad"
+            android:icon="@drawable/weather_sunny"
             android:label="@string/complications_summary"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
