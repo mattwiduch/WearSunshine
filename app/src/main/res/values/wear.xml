@@ -2,5 +2,6 @@
 <resources>
     <string-array name="android_wear_capabilities">
         <item>sunshine_launch_app</item>
+        <item>sunshine_sync_app</item>
     </string-array>
 </resources>

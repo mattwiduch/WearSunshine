@@ -14,10 +14,15 @@ import com.google.android.gms.wearable.WearableListenerService;
 public class SunshineWearListener extends WearableListenerService {
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
+        // Launch Sunshine mobile app
         if (messageEvent.getPath().equals(Constants.LAUNCH_SUNSHINE_MESSAGE_PATH)) {
             Intent startIntent = new Intent(this, MainActivity.class);
             startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(startIntent);
+        }
+        // Sync Sunshine data
+        if (messageEvent.getPath().equals(Constants.SYNC_SUNSHINE_MESSAGE_PATH)) {
+            SunshineSyncAdapter.syncImmediately(getApplicationContext());
         }
     }
 }
