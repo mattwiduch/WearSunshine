@@ -75,6 +75,10 @@
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="0"/>
         </service>
+        <service
+            android:name=".MessageService"
+            android:exported="false">
+        </service>
     </application>
 
 </manifest>
