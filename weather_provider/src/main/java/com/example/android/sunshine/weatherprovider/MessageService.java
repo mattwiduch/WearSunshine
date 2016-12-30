@@ -42,7 +42,10 @@ public class MessageService extends IntentService {
 
     public static final String ACTION_LAUNCH_SUNSHINE =
             "com.example.android.sunshine.weather_provider.action.LAUNCH_SUNSHINE";
+    public static final String ACTION_SYNC_SUNSHINE =
+            "com.example.android.sunshine.weather_provider.action.SYNC_SUNSHINE";
     public static final String SUNSHINE_LAUNCHER_CAPABILITY_NAME = "sunshine_launch_app";
+    public static final String SUNSHINE_SYNC_CAPABILITY_NAME = "sunshine_sync_app";
 
     public MessageService() {
         super(MessageService.class.getSimpleName());
@@ -95,6 +98,37 @@ public class MessageService extends IntentService {
                             "launching Sunshine.");
                 }
             }
+
+            if (ACTION_SYNC_SUNSHINE.equals(action)) {
+                // Detect capable nodes
+                CapabilityApi.GetCapabilityResult result =
+                        Wearable.CapabilityApi.getCapability(
+                                googleApiClient, SUNSHINE_SYNC_CAPABILITY_NAME,
+                                CapabilityApi.FILTER_REACHABLE).await();
+
+                Set<Node> connectedNodes = result.getCapability().getNodes();
+                String bestNodeId = pickBestNodeId(connectedNodes);
+
+                if (bestNodeId != null) {
+                    Wearable.MessageApi.sendMessage(googleApiClient, bestNodeId,
+                            Constants.SYNC_SUNSHINE_MESSAGE_PATH, null).setResultCallback(
+                            new ResultCallback<MessageApi.SendMessageResult>() {
+                                @Override
+                                public void onResult(
+                                        @NonNull MessageApi.SendMessageResult sendMessageResult) {
+                                    if (!sendMessageResult.getStatus().isSuccess()) {
+                                        Log.e(TAG, "onResult: Failed to send message to the node.");
+                                    }
+                                }
+                            }
+                    );
+                } else {
+                    // Unable to retrieve node with transcription capability
+                    Log.e(TAG, "onHandleIntent: Unable to retrieve node with capability of " +
+                            "syncing data.");
+                }
+            }
+
             googleApiClient.disconnect();
         }
     }
@@ -110,8 +144,17 @@ public class MessageService extends IntentService {
         return PendingIntent.getService(context, 0, intent, 0);
     }
 
+    /**
+     * Helper method that sends request sync message.
+     * @param context Application's context
+     */
+    static void requestSyncIntent(Context context) {
+        Intent intent = new Intent(context, MessageService.class);
+        intent.setAction(MessageService.ACTION_SYNC_SUNSHINE);
+        context.startService(intent);
+    }
+
     /** Helper method to find best node to send message to
-     *
      * @param nodes Capable Nodes
      * @return Id of best node
      */
