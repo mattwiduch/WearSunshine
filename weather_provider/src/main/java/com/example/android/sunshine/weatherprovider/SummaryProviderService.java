@@ -57,6 +57,7 @@ public class SummaryProviderService extends ComplicationProviderService {
     public void onComplicationActivated(
             int complicationId, int dataType, ComplicationManager complicationManager) {
         Log.d(TAG, "onComplicationActivated(): " + complicationId);
+        MessageService.requestSyncIntent(getApplicationContext());
         super.onComplicationActivated(complicationId, dataType, complicationManager);
     }
 
