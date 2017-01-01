@@ -88,11 +88,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int BACKGROUND_WIDTH = 600;
         private static final int BACKGROUND_HEIGHT = 600;
 
-        private static final float HOUR_STROKE_WIDTH = 5f;
-        private static final float MINUTE_STROKE_WIDTH = 3f;
+        private static final float HOUR_STROKE_WIDTH = 7f;
+        private static final float MINUTE_STROKE_WIDTH = HOUR_STROKE_WIDTH;
         private static final float SECOND_TICK_STROKE_WIDTH = 2f;
 
-        private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 4f;
+        private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 9f;
 
         private static final int SHADOW_RADIUS = 3;
 
@@ -156,14 +156,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mHourPaint.setColor(mWatchHandColor);
             mHourPaint.setStrokeWidth(HOUR_STROKE_WIDTH);
             mHourPaint.setAntiAlias(true);
-            mHourPaint.setStrokeCap(Paint.Cap.ROUND);
+            mHourPaint.setStrokeCap(Paint.Cap.SQUARE);
             mHourPaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
 
             mMinutePaint = new Paint();
             mMinutePaint.setColor(mWatchHandColor);
             mMinutePaint.setStrokeWidth(MINUTE_STROKE_WIDTH);
             mMinutePaint.setAntiAlias(true);
-            mMinutePaint.setStrokeCap(Paint.Cap.ROUND);
+            mMinutePaint.setStrokeCap(Paint.Cap.SQUARE);
             mMinutePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
 
             mSecondPaint = new Paint();
@@ -177,8 +177,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickAndCirclePaint.setColor(mWatchHandColor);
             mTickAndCirclePaint.setStrokeWidth(SECOND_TICK_STROKE_WIDTH);
             mTickAndCirclePaint.setAntiAlias(true);
-            mTickAndCirclePaint.setStyle(Paint.Style.STROKE);
-            mTickAndCirclePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
+            mTickAndCirclePaint.setStyle(Paint.Style.FILL);
+            mTickAndCirclePaint.setShadowLayer(0, 0, 0, mWatchHandShadowColor);
 
             mCalendar = Calendar.getInstance();
         }
