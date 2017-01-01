@@ -122,6 +122,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private Paint mMinutePaint;
         private Paint mSecondPaint;
         private Paint mTickAndCirclePaint;
+        private Paint mTopCirclePaint;
         private Paint mBackgroundPaint;
         private Bitmap mBackgroundBitmap;
         private Bitmap mGrayBackgroundBitmap;
@@ -178,7 +179,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickAndCirclePaint.setStrokeWidth(SECOND_TICK_STROKE_WIDTH);
             mTickAndCirclePaint.setAntiAlias(true);
             mTickAndCirclePaint.setStyle(Paint.Style.FILL);
-            mTickAndCirclePaint.setShadowLayer(0, 0, 0, mWatchHandShadowColor);
+            mTickAndCirclePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
+
+            mTopCirclePaint = new Paint(mTickAndCirclePaint);
+            mTopCirclePaint.clearShadowLayer();
 
             mCalendar = Calendar.getInstance();
         }
@@ -391,6 +395,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
              */
             canvas.save();
 
+            canvas.drawCircle(
+                    mCenterX,
+                    mCenterY,
+                    CENTER_GAP_AND_CIRCLE_RADIUS,
+                    mTickAndCirclePaint);
+
             canvas.rotate(hoursRotation, mCenterX, mCenterY);
             canvas.drawLine(
                     mCenterX,
@@ -407,6 +417,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCenterY - sMinuteHandLength,
                     mMinutePaint);
 
+            canvas.drawCircle(
+                    mCenterX,
+                    mCenterY,
+                    CENTER_GAP_AND_CIRCLE_RADIUS,
+                    mTopCirclePaint);
+
             /*
              * Ensure the "seconds" hand is drawn only when we are in interactive mode.
              * Otherwise, we only update the watch face once a minute.
@@ -421,11 +437,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                         mSecondPaint);
 
             }
-            canvas.drawCircle(
-                    mCenterX,
-                    mCenterY,
-                    CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mTickAndCirclePaint);
 
             /* Restore the canvas' original orientation. */
             canvas.restore();
