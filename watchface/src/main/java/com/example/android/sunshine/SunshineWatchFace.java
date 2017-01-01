@@ -140,6 +140,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
 
+            // Prepare background bitmap
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(Color.BLACK);
             mBackgroundBitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
@@ -148,7 +149,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             /* Set defaults for colors */
             mWatchHandColor = Color.WHITE;
-            mWatchHandHighlightColor = Color.RED;
+            mWatchHandHighlightColor = getColor(R.color.accent);
             mWatchHandShadowColor = getColor(R.color.dark_blue);
 
             mHourPaint = new Paint();
@@ -346,6 +347,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
+            // Draw Background
             if (mAmbient && (mLowBitAmbient || mBurnInProtection)) {
                 canvas.drawColor(Color.BLACK);
             } else if (mAmbient) {
