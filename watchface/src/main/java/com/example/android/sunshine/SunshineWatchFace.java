@@ -30,7 +30,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.graphics.Palette;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
@@ -179,19 +178,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickAndCirclePaint.setAntiAlias(true);
             mTickAndCirclePaint.setStyle(Paint.Style.STROKE);
             mTickAndCirclePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
-
-            /* Extract colors from background image to improve watchface style. */
-            Palette.from(mBackgroundBitmap).generate(new Palette.PaletteAsyncListener() {
-                @Override
-                public void onGenerated(Palette palette) {
-                    if (palette != null) {
-                        mWatchHandHighlightColor = palette.getVibrantColor(Color.RED);
-                        mWatchHandColor = palette.getLightVibrantColor(Color.WHITE);
-                        mWatchHandShadowColor = palette.getDarkMutedColor(Color.BLACK);
-                        updateWatchHandStyle();
-                    }
-                }
-            });
 
             mCalendar = Calendar.getInstance();
         }
