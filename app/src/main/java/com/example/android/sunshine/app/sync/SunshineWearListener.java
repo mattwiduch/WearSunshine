@@ -2,8 +2,8 @@ package com.example.android.sunshine.app.sync;
 
 import android.content.Intent;
 
-import com.example.android.sunshine.Constants;
 import com.example.android.sunshine.app.MainActivity;
+import com.example.android.sunshine.shared_resources.Constants;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 
