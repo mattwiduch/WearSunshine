@@ -94,7 +94,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 4f;
 
-        private static final int SHADOW_RADIUS = 6;
+        private static final int SHADOW_RADIUS = 3;
 
         private final Rect mPeekCardBounds = new Rect();
         /* Handler to update the time once a second in interactive mode. */
