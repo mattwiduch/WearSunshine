@@ -88,11 +88,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int BACKGROUND_WIDTH = 600;
         private static final int BACKGROUND_HEIGHT = 600;
 
-        private static final float HOUR_STROKE_WIDTH = 7f;
+        private static final float HOUR_STROKE_WIDTH = 8f;
         private static final float MINUTE_STROKE_WIDTH = HOUR_STROKE_WIDTH;
+        private static final float HAND_DECORATION_STROKE_WIDTH = 4f;
         private static final float SECOND_TICK_STROKE_WIDTH = 2f;
 
-        private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 9f;
+        private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 10f;
 
         private static final int SHADOW_RADIUS = 3;
 
@@ -116,10 +117,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private float sHourHandLength;
         /* Colors for all hands (hour, minute, seconds, ticks) based on photo loaded. */
         private int mWatchHandColor;
+        private int mWatchHandDecorationColor;
         private int mWatchHandHighlightColor;
         private int mWatchHandShadowColor;
         private Paint mHourPaint;
         private Paint mMinutePaint;
+        private Paint mHandDecorationPaint;
         private Paint mSecondPaint;
         private Paint mTickAndCirclePaint;
         private Paint mTopCirclePaint;
@@ -150,6 +153,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             /* Set defaults for colors */
             mWatchHandColor = Color.WHITE;
+            mWatchHandDecorationColor = getColor(R.color.primary);
             mWatchHandHighlightColor = getColor(R.color.accent);
             mWatchHandShadowColor = getColor(R.color.dark_blue);
 
@@ -166,6 +170,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mMinutePaint.setAntiAlias(true);
             mMinutePaint.setStrokeCap(Paint.Cap.SQUARE);
             mMinutePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
+
+            mHandDecorationPaint = new Paint();
+            mHandDecorationPaint.setColor(mWatchHandDecorationColor);
+            mHandDecorationPaint.setStrokeWidth(HAND_DECORATION_STROKE_WIDTH);
+            mHandDecorationPaint.setAntiAlias(true);
+            mHandDecorationPaint.setStrokeCap(Paint.Cap.SQUARE);
 
             mSecondPaint = new Paint();
             mSecondPaint.setColor(mWatchHandHighlightColor);
@@ -408,6 +418,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCenterX,
                     mCenterY - sHourHandLength,
                     mHourPaint);
+            // Draw hand decoration
+            canvas.drawLine(
+                    mCenterX,
+                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS - (sHourHandLength * 0.2f),
+                    mCenterX,
+                    mCenterY - sHourHandLength + (sHourHandLength * 0.04f),
+                    mHandDecorationPaint);
 
             canvas.rotate(minutesRotation - hoursRotation, mCenterX, mCenterY);
             canvas.drawLine(
@@ -416,6 +433,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCenterX,
                     mCenterY - sMinuteHandLength,
                     mMinutePaint);
+            // Draw hand decoration
+            canvas.drawLine(
+                    mCenterX,
+                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS - (sMinuteHandLength * 0.2f),
+                    mCenterX,
+                    mCenterY - sMinuteHandLength + (sMinuteHandLength * 0.04f),
+                    mHandDecorationPaint);
 
             canvas.drawCircle(
                     mCenterX,
