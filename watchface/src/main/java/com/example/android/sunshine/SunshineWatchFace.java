@@ -278,8 +278,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             /*
              * Calculate lengths of different hands based on watch screen size.
              */
-            mSecondHandLength = (float) (mCenterX * 0.875);
-            sMinuteHandLength = (float) (mCenterX * 0.75);
+            mSecondHandLength = (float) (mCenterX * 0.8);
+            sMinuteHandLength = (float) (mCenterX * 0.8);
             sHourHandLength = (float) (mCenterX * 0.5);
 
 
