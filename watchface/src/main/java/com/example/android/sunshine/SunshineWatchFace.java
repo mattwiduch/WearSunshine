@@ -149,7 +149,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             /* Set defaults for colors */
             mWatchHandColor = Color.WHITE;
             mWatchHandHighlightColor = Color.RED;
-            mWatchHandShadowColor = Color.BLACK;
+            mWatchHandShadowColor = getColor(R.color.dark_blue);
 
             mHourPaint = new Paint();
             mHourPaint.setColor(mWatchHandColor);
