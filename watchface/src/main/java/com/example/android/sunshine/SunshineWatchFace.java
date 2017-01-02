@@ -26,6 +26,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -98,7 +99,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         private static final int PRIMARY_SHADOW_RADIUS = 6;
         private static final int SECONDARY_SHADOW_RADIUS = 3;
-        private static final int TERTIARY_SHADOW_RADIUS = 1;
 
         private final Rect mPeekCardBounds = new Rect();
         /* Handler to update the time once a second in interactive mode. */
@@ -128,7 +128,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private Paint mMinutePaint;
         private Paint mHandDecorationPaint;
         private Paint mSecondPaint;
-        private Paint mSecondCirclePaint;
+        private Paint mSecondCircleBottomPaint;
+        private Paint mSecondCircleTopPaint;
         private Paint mTickAndCirclePaint;
         private Paint mTopCirclePaint;
         private Paint mBackgroundPaint;
@@ -190,8 +191,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mSecondPaint.setStrokeCap(Paint.Cap.ROUND);
             mSecondPaint.setShadowLayer(SECONDARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
 
-            mSecondCirclePaint = new Paint(mSecondPaint);
-            mSecondCirclePaint.setShadowLayer(TERTIARY_SHADOW_RADIUS, 0, 0, mWatchLightShadowColor);
+            mSecondCircleBottomPaint = new Paint(mSecondPaint);
+            mSecondCircleBottomPaint.setShadowLayer(SECONDARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
+
+            mSecondCircleTopPaint = new Paint(mSecondCircleBottomPaint);
+            mSecondCircleTopPaint.clearShadowLayer();
 
             mTickAndCirclePaint = new Paint();
             mTickAndCirclePaint.setColor(mWatchHandColor);
@@ -462,19 +466,30 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
              */
             if (!mAmbient) {
                 canvas.rotate(secondsRotation - minutesRotation, mCenterX, mCenterY);
-                canvas.drawLine(
+                canvas.drawCircle(
                         mCenterX,
-                        mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
-                        mCenterX,
-                        mCenterY - mSecondHandLength,
-                        mSecondPaint);
+                        mCenterY,
+                        SECOND_HAND_CIRCLE_RADIUS,
+                        mSecondCircleBottomPaint);
+
+                float topY = mSecondHandLength + (CENTER_GAP_AND_CIRCLE_RADIUS * 0.5f) - 1f;
+                float bottomY = mSecondHandLength * 0.22f;
+
+                Path path = new Path();
+                path.moveTo(mCenterX - 1f, mCenterY - topY); // Top
+                path.lineTo(mCenterX - 2f, mCenterY); // Middle left
+                path.lineTo(mCenterX - 3f, mCenterY + bottomY); // Bottom left
+                path.lineTo(mCenterX + 3f, mCenterY + bottomY); // Bottom right
+                path.lineTo(mCenterX + 2f, mCenterY); // Middle right
+                path.lineTo(mCenterX + 1f, mCenterY - topY); // Back to Top
+                path.close();
+                canvas.drawPath(path, mSecondPaint);
 
                 canvas.drawCircle(
                         mCenterX,
                         mCenterY,
                         SECOND_HAND_CIRCLE_RADIUS,
-                        mSecondCirclePaint);
-
+                        mSecondCircleTopPaint);
             }
 
             /* Restore the canvas' original orientation. */
