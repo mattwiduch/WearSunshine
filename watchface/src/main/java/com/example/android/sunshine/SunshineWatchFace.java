@@ -37,6 +37,7 @@ import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
@@ -44,6 +45,9 @@ import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+
+import static android.support.wearable.watchface.WatchFaceStyle.PROTECT_HOTWORD_INDICATOR;
+import static android.support.wearable.watchface.WatchFaceStyle.PROTECT_STATUS_BAR;
 
 /**
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't
@@ -155,7 +159,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
+                    .setStatusBarGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL)
+                    .setHotwordIndicatorGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL)
+                    .setShowUnreadCountIndicator(true)
+                    .setViewProtectionMode(PROTECT_STATUS_BAR | PROTECT_HOTWORD_INDICATOR)
                     //.setAcceptsTapEvents(true)
+                    .setHideHotwordIndicator(true)
+                    .setHideStatusBar(true)
                     .build());
 
             /* Set defaults for colors */
