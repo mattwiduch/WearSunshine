@@ -93,7 +93,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final float HOUR_STROKE_WIDTH = 8f;
         private static final float MINUTE_STROKE_WIDTH = HOUR_STROKE_WIDTH;
         private static final float HAND_DECORATION_STROKE_WIDTH = 4f;
-        private static final float SECOND_TICK_STROKE_WIDTH = 2f;
+        private static final float SECOND_STROKE_WIDTH = 2f;
+        private static final float TICK_PRIMARY_STROKE_WIDTH = 3f;
+        private static final float TICK_SECONDARY_STROKE_WIDTH = 1.2f;
 
         private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 10f;
         private static final float SECOND_HAND_CIRCLE_RADIUS = 7f;
@@ -130,8 +132,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private Paint mSecondPaint;
         private Paint mSecondCircleBottomPaint;
         private Paint mSecondCircleTopPaint;
-        private Paint mTickAndCirclePaint;
-        private Paint mTopCirclePaint;
+        private Paint mCircleBottomPaint;
+        private Paint mCircleTopPaint;
+        private Paint mTickPrimaryPaint;
+        private Paint mTickSecondaryPaint;
         private Paint mBackgroundPaint;
         private Bitmap mBackgroundBitmap;
         private Bitmap mGrayBackgroundBitmap;
@@ -194,7 +198,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mSecondPaint = new Paint();
             mSecondPaint.setColor(mWatchHandHighlightColor);
-            mSecondPaint.setStrokeWidth(SECOND_TICK_STROKE_WIDTH);
+            mSecondPaint.setStrokeWidth(SECOND_STROKE_WIDTH);
             mSecondPaint.setAntiAlias(true);
             mSecondPaint.setStrokeCap(Paint.Cap.ROUND);
             mSecondPaint.setShadowLayer(SECONDARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
@@ -205,15 +209,25 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mSecondCircleTopPaint = new Paint(mSecondCircleBottomPaint);
             mSecondCircleTopPaint.clearShadowLayer();
 
-            mTickAndCirclePaint = new Paint();
-            mTickAndCirclePaint.setColor(mWatchHandColor);
-            mTickAndCirclePaint.setStrokeWidth(SECOND_TICK_STROKE_WIDTH);
-            mTickAndCirclePaint.setAntiAlias(true);
-            mTickAndCirclePaint.setStyle(Paint.Style.FILL);
-            mTickAndCirclePaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
+            mCircleBottomPaint = new Paint();
+            mCircleBottomPaint.setColor(mWatchHandColor);
+            mCircleBottomPaint.setStrokeWidth(SECOND_STROKE_WIDTH);
+            mCircleBottomPaint.setAntiAlias(true);
+            mCircleBottomPaint.setStyle(Paint.Style.FILL);
+            mCircleBottomPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
 
-            mTopCirclePaint = new Paint(mTickAndCirclePaint);
-            mTopCirclePaint.clearShadowLayer();
+            mCircleTopPaint = new Paint(mCircleBottomPaint);
+            mCircleTopPaint.clearShadowLayer();
+
+            mTickPrimaryPaint = new Paint();
+            mTickPrimaryPaint.setColor(Color.WHITE);
+            mTickPrimaryPaint.setStrokeWidth(TICK_PRIMARY_STROKE_WIDTH);
+            mTickPrimaryPaint.setAntiAlias(true);
+            mTickPrimaryPaint.setStyle(Paint.Style.FILL);
+
+            mTickSecondaryPaint = new Paint(mTickPrimaryPaint);
+            mTickSecondaryPaint.setColor(getColor(R.color.primary_light));
+            mTickSecondaryPaint.setStrokeWidth(TICK_SECONDARY_STROKE_WIDTH);
 
             mCalendar = Calendar.getInstance();
         }
@@ -253,33 +267,33 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mHourPaint.setColor(Color.WHITE);
                 mMinutePaint.setColor(Color.WHITE);
                 mSecondPaint.setColor(Color.WHITE);
-                mTickAndCirclePaint.setColor(Color.WHITE);
+                mCircleBottomPaint.setColor(Color.WHITE);
 
                 mHourPaint.setAntiAlias(false);
                 mMinutePaint.setAntiAlias(false);
                 mSecondPaint.setAntiAlias(false);
-                mTickAndCirclePaint.setAntiAlias(false);
+                mCircleBottomPaint.setAntiAlias(false);
 
                 mHourPaint.clearShadowLayer();
                 mMinutePaint.clearShadowLayer();
                 mSecondPaint.clearShadowLayer();
-                mTickAndCirclePaint.clearShadowLayer();
+                mCircleBottomPaint.clearShadowLayer();
 
             } else {
                 mHourPaint.setColor(mWatchHandColor);
                 mMinutePaint.setColor(mWatchHandColor);
                 mSecondPaint.setColor(mWatchHandHighlightColor);
-                mTickAndCirclePaint.setColor(mWatchHandColor);
+                mCircleBottomPaint.setColor(mWatchHandColor);
 
                 mHourPaint.setAntiAlias(true);
                 mMinutePaint.setAntiAlias(true);
                 mSecondPaint.setAntiAlias(true);
-                mTickAndCirclePaint.setAntiAlias(true);
+                mCircleBottomPaint.setAntiAlias(true);
 
                 mHourPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
                 mMinutePaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
                 mSecondPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
-                mTickAndCirclePaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
+                mCircleBottomPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
             }
         }
 
@@ -396,16 +410,21 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
              * cases where you want to allow users to select their own photos, this dynamically
              * creates them on top of the photo.
              */
-            float innerTickRadius = mCenterX - 10;
-            float outerTickRadius = mCenterX;
-            for (int tickIndex = 0; tickIndex < 12; tickIndex++) {
-                float tickRot = (float) (tickIndex * Math.PI * 2 / 12);
+            float innerTickRadius = mCenterX - 20f;
+            float outerTickRadius = mCenterX - 4f;
+            for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
+                float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
                 float innerX = (float) Math.sin(tickRot) * innerTickRadius;
                 float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
                 float outerX = (float) Math.sin(tickRot) * outerTickRadius;
                 float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
-                canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
-                        mCenterX + outerX, mCenterY + outerY, mTickAndCirclePaint);
+                if (tickIndex %5 == 0) {
+                    canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
+                            mCenterX + outerX, mCenterY + outerY, mTickPrimaryPaint);
+                } else {
+                    canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
+                            mCenterX + outerX, mCenterY + outerY, mTickSecondaryPaint);
+                }
             }
 
             /*
@@ -430,7 +449,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCenterX,
                     mCenterY,
                     CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mTickAndCirclePaint);
+                    mCircleBottomPaint);
 
             canvas.rotate(hoursRotation, mCenterX, mCenterY);
             canvas.drawLine(
@@ -466,7 +485,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCenterX,
                     mCenterY,
                     CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mTopCirclePaint);
+                    mCircleTopPaint);
 
             /*
              * Ensure the "seconds" hand is drawn only when we are in interactive mode.
