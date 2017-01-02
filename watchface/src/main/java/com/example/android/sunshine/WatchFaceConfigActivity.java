@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.wearable.complications.ComplicationHelperActivity;
 import android.support.wearable.view.WearableListView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -73,6 +74,15 @@ public class WatchFaceConfigActivity extends Activity implements
 
         Integer tag = (Integer) viewHolder.itemView.getTag();
         ComplicationItem complicationItem = mAdapter.getItem(tag);
+
+        // Allows the user to select a provider for the complication chosen
+        startActivityForResult(
+                ComplicationHelperActivity.createProviderChooserHelperIntent(
+                        getApplicationContext(),
+                        complicationItem.watchFace,
+                        complicationItem.complicationId,
+                        complicationItem.supportedTypes),
+                PROVIDER_CHOOSER_REQUEST_CODE);
     }
 
     @Override
