@@ -72,17 +72,17 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
      * Complications constants;
      */
     private static final int TOP_DIAL_COMPLICATION = 0;
-    private static final int BOTTOM_DIAL_COMPLICATION = 1;
-    private static final int LEFT_DIAL_COMPLICATION = 2;
+    private static final int LEFT_DIAL_COMPLICATION = 1;
+    private static final int BOTTOM_DIAL_COMPLICATION = 2;
 
-    public static final int[] COMPLICATION_IDS = {TOP_DIAL_COMPLICATION, BOTTOM_DIAL_COMPLICATION,
-            LEFT_DIAL_COMPLICATION};
+    public static final int[] COMPLICATION_IDS = {TOP_DIAL_COMPLICATION, LEFT_DIAL_COMPLICATION,
+            BOTTOM_DIAL_COMPLICATION};
 
     // Left and right dial supported types.
     public static final int[][] COMPLICATION_SUPPORTED_TYPES = {
             {ComplicationData.TYPE_SHORT_TEXT},
-            {ComplicationData.TYPE_RANGED_VALUE},
-            {ComplicationData.TYPE_SMALL_IMAGE}
+            {ComplicationData.TYPE_SMALL_IMAGE},
+            {ComplicationData.TYPE_RANGED_VALUE}
     };
 
     @Override
