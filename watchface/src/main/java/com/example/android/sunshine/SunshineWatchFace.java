@@ -333,7 +333,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mComplicationPaint.setColor(Color.WHITE);
             mComplicationPaint.setTextSize(COMPLICATIONS_FONT_SIZE);
             mComplicationPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            mComplicationPaint.setAntiAlias(!isInAmbientMode());
+            mComplicationPaint.setAntiAlias(true);
 
             // Tells Android Wear complications are supported and passes their unique IDs
             setActiveComplications(COMPLICATION_IDS);
@@ -370,7 +370,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
             mAmbient = inAmbientMode;
-
+            mComplicationPaint.setAntiAlias(!inAmbientMode);
             updateWatchHandStyle();
 
             /* Check and trigger whether or not timer should be running (only in active mode). */
