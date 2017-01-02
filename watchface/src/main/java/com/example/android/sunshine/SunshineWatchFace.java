@@ -333,7 +333,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mComplicationPaint.setColor(Color.WHITE);
             mComplicationPaint.setTextSize(COMPLICATIONS_FONT_SIZE);
             mComplicationPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            mComplicationPaint.setAntiAlias(true);
+            mComplicationPaint.setAntiAlias(!isInAmbientMode());
 
             // Tells Android Wear complications are supported and passes their unique IDs
             setActiveComplications(COMPLICATION_IDS);
