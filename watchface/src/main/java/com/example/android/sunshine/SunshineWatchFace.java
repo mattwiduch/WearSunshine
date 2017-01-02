@@ -454,6 +454,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     (int) (mBackgroundBitmap.getWidth() * scale),
                     (int) (mBackgroundBitmap.getHeight() * scale), true);
 
+            // Recalculate surface changes
+            mComplicationsY = (int) ((height / 2) + (mComplicationPaint.getTextSize() / 2));
+
             /*
              * Create a gray version of the image only if it will look nice on the device in
              * ambient mode. That means we don't want devices that support burn-in
