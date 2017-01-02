@@ -29,6 +29,7 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -166,8 +167,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             logo = Bitmap.createScaledBitmap(logo, (int) (logo.getWidth() * 0.7f),
                     (int) (logo.getHeight() * 0.7f), true);
             Canvas canvas = new Canvas(mBackgroundBitmap);
-            float x = (mBackgroundBitmap.getWidth() * 0.75f) - (logo.getWidth() * 0.5f);
-            float y = mBackgroundBitmap.getHeight() * 0.5f - (logo.getHeight() * 0.5f);
+            float x = (mBackgroundBitmap.getWidth() * 0.7f) - (logo.getWidth() * 0.4f);
+            float y = mBackgroundBitmap.getHeight() * 0.5f - (logo.getHeight() * 0.6f);
             canvas.drawBitmap(logo, x, y, null);
 
             /* Set defaults for colors */
@@ -222,6 +223,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickPrimaryPaint = new Paint();
             mTickPrimaryPaint.setColor(Color.WHITE);
             mTickPrimaryPaint.setStrokeWidth(TICK_PRIMARY_STROKE_WIDTH);
+            mTickPrimaryPaint.setTextSize(32f);
+            mTickPrimaryPaint.setTypeface(Typeface.createFromAsset(getAssets(),
+                    "fonts/Kanit-Medium.ttf"));
             mTickPrimaryPaint.setAntiAlias(true);
             mTickPrimaryPaint.setStyle(Paint.Style.FILL);
 
@@ -412,15 +416,30 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
              */
             float innerTickRadius = mCenterX - 20f;
             float outerTickRadius = mCenterX - 4f;
+            float innerHourRadius = mCenterX - 36f;
+
+            int hours[] = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
+            int hourIndex = 0;
+
             for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
                 float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
                 float innerX = (float) Math.sin(tickRot) * innerTickRadius;
                 float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
                 float outerX = (float) Math.sin(tickRot) * outerTickRadius;
                 float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+
                 if (tickIndex %5 == 0) {
                     canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
                             mCenterX + outerX, mCenterY + outerY, mTickPrimaryPaint);
+
+                    float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 9f;
+                    float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 11f;
+                    if (hourIndex == 0) {
+                        innerHourX -= 3f;
+                    }
+
+                    canvas.drawText(Integer.toString(hours[hourIndex++]),
+                            mCenterX + innerHourX, mCenterY + innerHourY, mTickPrimaryPaint);
                 } else {
                     canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
                             mCenterX + outerX, mCenterY + outerY, mTickSecondaryPaint);
