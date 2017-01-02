@@ -36,6 +36,7 @@ import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
@@ -104,6 +105,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int PRIMARY_SHADOW_RADIUS = 6;
         private static final int SECONDARY_SHADOW_RADIUS = 3;
 
+        private static final float HOUR_LABEL_FONT_SIZE = 32f;
+
         private final Rect mPeekCardBounds = new Rect();
         /* Handler to update the time once a second in interactive mode. */
         private final Handler mUpdateTimeHandler = new EngineHandler(this);
@@ -154,22 +157,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .setShowSystemUiTime(false)
                     .setAcceptsTapEvents(true)
                     .build());
-
-            // Prepare background bitmap
-            mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(Color.BLACK);
-            mBackgroundBitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
-                    Bitmap.Config.ARGB_8888);
-            mBackgroundBitmap.eraseColor(getColor(R.color.primary_dark));
-
-            // Draw logo on the background bitmap
-            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
-            logo = Bitmap.createScaledBitmap(logo, (int) (logo.getWidth() * 0.7f),
-                    (int) (logo.getHeight() * 0.7f), true);
-            Canvas canvas = new Canvas(mBackgroundBitmap);
-            float x = (mBackgroundBitmap.getWidth() * 0.7f) - (logo.getWidth() * 0.4f);
-            float y = mBackgroundBitmap.getHeight() * 0.5f - (logo.getHeight() * 0.6f);
-            canvas.drawBitmap(logo, x, y, null);
 
             /* Set defaults for colors */
             mWatchHandColor = Color.WHITE;
@@ -223,7 +210,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickPrimaryPaint = new Paint();
             mTickPrimaryPaint.setColor(Color.WHITE);
             mTickPrimaryPaint.setStrokeWidth(TICK_PRIMARY_STROKE_WIDTH);
-            mTickPrimaryPaint.setTextSize(32f);
+            mTickPrimaryPaint.setTextSize(HOUR_LABEL_FONT_SIZE);
             mTickPrimaryPaint.setTypeface(Typeface.createFromAsset(getAssets(),
                     "fonts/Kanit-Medium.ttf"));
             mTickPrimaryPaint.setAntiAlias(true);
@@ -233,7 +220,67 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickSecondaryPaint.setColor(getColor(R.color.primary_light));
             mTickSecondaryPaint.setStrokeWidth(TICK_SECONDARY_STROKE_WIDTH);
 
+            prepareBackgroundBitmap();
+
             mCalendar = Calendar.getInstance();
+        }
+
+        /** Prepares bitmap to be used as watch face background. **/
+        private void prepareBackgroundBitmap() {
+            // Prepare background bitmap
+            mBackgroundPaint = new Paint();
+            mBackgroundPaint.setColor(Color.BLACK);
+            mBackgroundBitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
+                    Bitmap.Config.ARGB_8888);
+            mBackgroundBitmap.eraseColor(getColor(R.color.primary_dark));
+
+            // Draw logo on the background bitmap
+            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
+            logo = Bitmap.createScaledBitmap(logo, (int) (logo.getWidth() * 0.7f),
+                    (int) (logo.getHeight() * 0.7f), true);
+            Canvas canvas = new Canvas(mBackgroundBitmap);
+            float x = (mBackgroundBitmap.getWidth() * 0.7f) - (logo.getWidth() * 0.4f);
+            float y = mBackgroundBitmap.getHeight() * 0.5f - (logo.getHeight() * 0.6f);
+            canvas.drawBitmap(logo, x, y, null);
+
+            /*
+             * Draw ticks. Usually you will want to bake this directly into the photo, but in
+             * cases where you want to allow users to select their own photos, this dynamically
+             * creates them on top of the photo.
+             */
+            int bitmapCenterX = BACKGROUND_WIDTH / 2;
+            int bitmapCenterY = BACKGROUND_HEIGHT / 2;
+            float innerTickRadius = bitmapCenterX - 20f;
+            float outerTickRadius = bitmapCenterX - 4f;
+            float innerHourRadius = bitmapCenterX - 36f;
+
+            int hours[] = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
+            int hourIndex = 0;
+
+            for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
+                float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
+                float innerX = (float) Math.sin(tickRot) * innerTickRadius;
+                float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
+                float outerX = (float) Math.sin(tickRot) * outerTickRadius;
+                float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+
+                if (tickIndex %5 == 0) {
+                    canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
+                            bitmapCenterX + outerX, bitmapCenterY + outerY, mTickPrimaryPaint);
+
+                    float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 9f;
+                    float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 11f;
+                    if (hourIndex == 0) {
+                        innerHourX -= 3f;
+                    }
+
+                    canvas.drawText(Integer.toString(hours[hourIndex++]),
+                            bitmapCenterX + innerHourX, bitmapCenterY + innerHourY, mTickPrimaryPaint);
+                } else {
+                    canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
+                            bitmapCenterX + outerX, bitmapCenterY + outerY, mTickSecondaryPaint);
+                }
+            }
         }
 
         @Override
@@ -338,6 +385,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             /* Scale loaded background image (more efficient) if surface dimensions change. */
             float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
+            Log.d("WATCH FACE", "onSurfaceChanged: scale is " + scale);
 
             mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
                     (int) (mBackgroundBitmap.getWidth() * scale),
@@ -407,43 +455,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0, 0, mBackgroundPaint);
             } else {
                 canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
-            }
-
-            /*
-             * Draw ticks. Usually you will want to bake this directly into the photo, but in
-             * cases where you want to allow users to select their own photos, this dynamically
-             * creates them on top of the photo.
-             */
-            float innerTickRadius = mCenterX - 20f;
-            float outerTickRadius = mCenterX - 4f;
-            float innerHourRadius = mCenterX - 36f;
-
-            int hours[] = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
-            int hourIndex = 0;
-
-            for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
-                float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
-                float innerX = (float) Math.sin(tickRot) * innerTickRadius;
-                float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
-                float outerX = (float) Math.sin(tickRot) * outerTickRadius;
-                float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
-
-                if (tickIndex %5 == 0) {
-                    canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
-                            mCenterX + outerX, mCenterY + outerY, mTickPrimaryPaint);
-
-                    float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 9f;
-                    float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 11f;
-                    if (hourIndex == 0) {
-                        innerHourX -= 3f;
-                    }
-
-                    canvas.drawText(Integer.toString(hours[hourIndex++]),
-                            mCenterX + innerHourX, mCenterY + innerHourY, mTickPrimaryPaint);
-                } else {
-                    canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
-                            mCenterX + outerX, mCenterY + outerY, mTickSecondaryPaint);
-                }
             }
 
             /*
