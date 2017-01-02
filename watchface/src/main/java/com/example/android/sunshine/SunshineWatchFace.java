@@ -37,7 +37,6 @@ import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
@@ -341,6 +340,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
+        public void onComplicationDataUpdate(int watchFaceComplicationId, ComplicationData data) {
+            // Adds/updates active complication data in the array.
+            mActiveComplicationDataSparseArray.put(watchFaceComplicationId, data);
+            // Invalidate the screen so onDraw() is called
+            invalidate();
+        }
+
+        @Override
         public void onDestroy() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
@@ -442,7 +449,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             /* Scale loaded background image (more efficient) if surface dimensions change. */
             float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
-            Log.d("WATCH FACE", "onSurfaceChanged: scale is " + scale);
 
             mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
                     (int) (mBackgroundBitmap.getWidth() * scale),
