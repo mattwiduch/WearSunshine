@@ -33,10 +33,12 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
@@ -66,6 +68,23 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
      * Handler message id for updating the time periodically in interactive mode.
      */
     private static final int MSG_UPDATE_TIME = 0;
+
+    /**
+     * Complications constants;
+     */
+    private static final int TOP_DIAL_COMPLICATION = 0;
+    private static final int BOTTOM_DIAL_COMPLICATION = 1;
+    private static final int LEFT_DIAL_COMPLICATION = 2;
+
+    public static final int[] COMPLICATION_IDS = {TOP_DIAL_COMPLICATION, BOTTOM_DIAL_COMPLICATION,
+            LEFT_DIAL_COMPLICATION};
+
+    // Left and right dial supported types.
+    public static final int[][] COMPLICATION_SUPPORTED_TYPES = {
+            {ComplicationData.TYPE_SHORT_TEXT},
+            {ComplicationData.TYPE_RANGED_VALUE},
+            {ComplicationData.TYPE_SMALL_IMAGE}
+    };
 
     @Override
     public Engine onCreateEngine() {
@@ -110,6 +129,19 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int SECONDARY_SHADOW_RADIUS = 3;
 
         private static final float HOUR_LABEL_FONT_SIZE = 54f;
+        private static final float COMPLICATIONS_FONT_SIZE = 24f;
+
+        // Variables for painting Complications
+        private Paint mComplicationPaint;
+
+        // X and Y coordinates used to place complications properly
+        private int mComplicationsX;
+        private int mComplicationsY;
+
+        /* Maps active complication ids to the data for that complication. Note: Data will only be
+         * present if the user has chosen a provider via the settings activity for the watch face.
+         */
+        private SparseArray<ComplicationData> mActiveComplicationDataSparseArray;
 
         private final Rect mPeekCardBounds = new Rect();
         /* Handler to update the time once a second in interactive mode. */
@@ -231,6 +263,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickSecondaryPaint.setStrokeWidth(TICK_SECONDARY_STROKE_WIDTH);
 
             prepareBackgroundBitmap();
+            initializeComplications();
 
             mCalendar = Calendar.getInstance();
         }
@@ -291,6 +324,20 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                             bitmapCenterX + outerX, bitmapCenterY + outerY, mTickSecondaryPaint);
                 }
             }
+        }
+
+        /** Initializes complications variables. **/
+        private void initializeComplications() {
+            mActiveComplicationDataSparseArray = new SparseArray<>(COMPLICATION_IDS.length);
+
+            mComplicationPaint = new Paint();
+            mComplicationPaint.setColor(Color.WHITE);
+            mComplicationPaint.setTextSize(COMPLICATIONS_FONT_SIZE);
+            mComplicationPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+            mComplicationPaint.setAntiAlias(true);
+
+            // Tells Android Wear complications are supported and passes their unique IDs
+            setActiveComplications(COMPLICATION_IDS);
         }
 
         @Override
