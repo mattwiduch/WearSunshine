@@ -96,8 +96,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final float MINUTE_STROKE_WIDTH = HOUR_STROKE_WIDTH;
         private static final float HAND_DECORATION_STROKE_WIDTH = 4f;
         private static final float SECOND_STROKE_WIDTH = 2f;
-        private static final float TICK_PRIMARY_STROKE_WIDTH = 3f;
-        private static final float TICK_SECONDARY_STROKE_WIDTH = 1.2f;
+        private static final float TICK_PRIMARY_STROKE_WIDTH = 5f;
+        private static final float TICK_SECONDARY_STROKE_WIDTH = 2f;
 
         private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 10f;
         private static final float SECOND_HAND_CIRCLE_RADIUS = 7f;
@@ -105,7 +105,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int PRIMARY_SHADOW_RADIUS = 6;
         private static final int SECONDARY_SHADOW_RADIUS = 3;
 
-        private static final float HOUR_LABEL_FONT_SIZE = 32f;
+        private static final float HOUR_LABEL_FONT_SIZE = 54f;
 
         private final Rect mPeekCardBounds = new Rect();
         /* Handler to update the time once a second in interactive mode. */
@@ -250,9 +250,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
              */
             int bitmapCenterX = BACKGROUND_WIDTH / 2;
             int bitmapCenterY = BACKGROUND_HEIGHT / 2;
-            float innerTickRadius = bitmapCenterX - 20f;
-            float outerTickRadius = bitmapCenterX - 4f;
-            float innerHourRadius = bitmapCenterX - 36f;
+            float innerTickRadius = bitmapCenterX - 34f;
+            float outerTickRadius = bitmapCenterX - 7f;
+            float innerHourRadius = bitmapCenterX - 60f;
 
             int hours[] = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
             int hourIndex = 0;
@@ -268,10 +268,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
                             bitmapCenterX + outerX, bitmapCenterY + outerY, mTickPrimaryPaint);
 
-                    float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 9f;
-                    float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 11f;
+                    float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 15f;
+                    float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 18f;
                     if (hourIndex == 0) {
-                        innerHourX -= 3f;
+                        innerHourX -= 5f;
                     }
 
                     canvas.drawText(Integer.toString(hours[hourIndex++]),
