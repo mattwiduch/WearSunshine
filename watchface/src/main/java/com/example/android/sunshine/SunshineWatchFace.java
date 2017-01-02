@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
@@ -123,7 +124,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private int mWatchHandDecorationColor;
         private int mWatchHandHighlightColor;
         private int mWatchDarkShadowColor;
-        private int mWatchLightShadowColor;
         private Paint mHourPaint;
         private Paint mMinutePaint;
         private Paint mHandDecorationPaint;
@@ -155,14 +155,22 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mBackgroundPaint.setColor(Color.BLACK);
             mBackgroundBitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                     Bitmap.Config.ARGB_8888);
-            mBackgroundBitmap.eraseColor(getColor(R.color.primary));
+            mBackgroundBitmap.eraseColor(getColor(R.color.primary_dark));
+
+            // Draw logo on the background bitmap
+            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
+            logo = Bitmap.createScaledBitmap(logo, (int) (logo.getWidth() * 0.7f),
+                    (int) (logo.getHeight() * 0.7f), true);
+            Canvas canvas = new Canvas(mBackgroundBitmap);
+            float x = (mBackgroundBitmap.getWidth() * 0.75f) - (logo.getWidth() * 0.5f);
+            float y = mBackgroundBitmap.getHeight() * 0.5f - (logo.getHeight() * 0.5f);
+            canvas.drawBitmap(logo, x, y, null);
 
             /* Set defaults for colors */
             mWatchHandColor = Color.WHITE;
             mWatchHandDecorationColor = getColor(R.color.primary);
             mWatchHandHighlightColor = getColor(R.color.accent);
             mWatchDarkShadowColor = getColor(R.color.shadow_dark);
-            mWatchLightShadowColor = getColor(R.color.shadow_light);
 
             mHourPaint = new Paint();
             mHourPaint.setColor(mWatchHandColor);
