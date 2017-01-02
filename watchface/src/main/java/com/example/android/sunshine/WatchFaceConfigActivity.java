@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.wearable.view.WearableListView;
@@ -80,7 +81,26 @@ public class WatchFaceConfigActivity extends Activity implements
     }
 
     public List<ComplicationItem> getComplicationItems() {
-        return new ArrayList<>();
+        ComponentName watchFace = new ComponentName(
+                getApplicationContext(), SunshineWatchFace.class);
+
+        String[] complicationNames =
+                getResources().getStringArray(R.array.complication_names);
+
+        int[] complicationIds = SunshineWatchFace.COMPLICATION_IDS;
+
+        TypedArray icons = getResources().obtainTypedArray(R.array.complication_icons);
+
+        List<ComplicationItem> items = new ArrayList<>();
+        for (int i = 0; i < complicationIds.length; i++) {
+            items.add(new ComplicationItem(watchFace,
+                    complicationIds[i],
+                    SunshineWatchFace.COMPLICATION_SUPPORTED_TYPES[i],
+                    icons.getDrawable(i),
+                    complicationNames[i]));
+        }
+        icons.recycle();
+        return items;
     }
 
     /*
