@@ -28,12 +28,11 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview_circular"
                 android:resource="@drawable/preview_analog"/>
-            <!-- Wearable configuration activity -->
             <meta-data
                 android:name=
                     "com.google.android.wearable.watchface.wearableConfigurationAction"
                 android:value=
-                    "com.example.android.sunshine.watchface.CONFIG_ANALOG" />
+                    "com.example.android.sunshine.watchface.CONFIG_COMPLICATION" />
 
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService"/>
@@ -43,6 +42,17 @@
         </service>
 
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
+
+        <!-- Wearable configuration activity -->
+        <activity
+            android:name=".WatchFaceConfigActivity"
+            android:label="@string/sunshine_analog_name">
+            <intent-filter>
+                <action android:name="com.example.android.sunshine.watchface.CONFIG_COMPLICATION"/>
+                <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
 
         <meta-data
             android:name="com.google.android.gms.version"
