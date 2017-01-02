@@ -28,6 +28,12 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview_circular"
                 android:resource="@drawable/preview_analog"/>
+            <!-- Wearable configuration activity -->
+            <meta-data
+                android:name=
+                    "com.google.android.wearable.watchface.wearableConfigurationAction"
+                android:value=
+                    "com.example.android.sunshine.watchface.CONFIG_ANALOG" />
 
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService"/>
