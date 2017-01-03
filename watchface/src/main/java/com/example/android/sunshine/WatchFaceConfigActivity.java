@@ -97,7 +97,7 @@ public class WatchFaceConfigActivity extends Activity implements
         String[] complicationNames =
                 getResources().getStringArray(R.array.complication_names);
 
-        int[] complicationIds = SunshineWatchFace.COMPLICATION_IDS;
+        int[] complicationIds = ComplicationsHelper.COMPLICATION_IDS;
 
         TypedArray icons = getResources().obtainTypedArray(R.array.complication_icons);
 
@@ -105,7 +105,7 @@ public class WatchFaceConfigActivity extends Activity implements
         for (int i = 0; i < complicationIds.length; i++) {
             items.add(new ComplicationItem(watchFace,
                     complicationIds[i],
-                    SunshineWatchFace.COMPLICATION_SUPPORTED_TYPES[i],
+                    ComplicationsHelper.COMPLICATION_SUPPORTED_TYPES[i],
                     icons.getDrawable(i),
                     complicationNames[i]));
         }
