@@ -81,9 +81,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
     // Left and right dial supported types.
     public static final int[][] COMPLICATION_SUPPORTED_TYPES = {
-            {ComplicationData.TYPE_SHORT_TEXT},
+            {ComplicationData.TYPE_SHORT_TEXT, ComplicationData.TYPE_RANGED_VALUE},
             {ComplicationData.TYPE_SMALL_IMAGE},
-            {ComplicationData.TYPE_RANGED_VALUE}
+            {ComplicationData.TYPE_SHORT_TEXT, ComplicationData.TYPE_RANGED_VALUE}
     };
 
     @Override
@@ -141,6 +141,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         // X and Y coordinates used to place complications properly
         private int mTopComplicationX;
         private int mTopComplicationY;
+        private int mLeftComplicationX;
+        private int mLeftComplicationY;
+        private int mBottomComplicationY;
 
         // Complication radius
         private float mComplicationRadius;
@@ -480,6 +483,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mComplicationRadius = mBackgroundBitmap.getWidth() / 6.3f;
             mTopComplicationX = width / 2;
             mTopComplicationY = (height / 2) - (int) (2.2 * mComplicationRadius);
+            mLeftComplicationX = width / 4;
+            mLeftComplicationY = height / 2;
+            mBottomComplicationY = (height / 2) + (int) (0.2 * mComplicationRadius);
 
             /*
              * Create a gray version of the image only if it will look nice on the device in
@@ -676,17 +682,26 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                         CharSequence shortTextMessage =
                                 shortText.getText(getApplicationContext(), currentTimeMillis);
 
+                        int complicationY;
+
+                        if (COMPLICATION_IDS[i] == TOP_DIAL_COMPLICATION) {
+                            complicationY = mTopComplicationY;
+                        } else if (COMPLICATION_IDS[i] == BOTTOM_DIAL_COMPLICATION){
+                            complicationY = mBottomComplicationY;
+                        } else {
+                            complicationY = mLeftComplicationY;
+                        }
 //                        // Complication background
 //                        canvas.drawCircle(
 //                                mTopComplicationX,
-//                                mTopComplicationY + mComplicationRadius,
+//                                complicationY + mComplicationRadius,
 //                                mComplicationRadius,
 //                                mHandDecorationPaint);
 
                         // Complication stroke
                         canvas.drawCircle(
                                 mTopComplicationX,
-                                mTopComplicationY + mComplicationRadius,
+                                complicationY + mComplicationRadius,
                                 mComplicationRadius,
                                 mComplicationStrokePaint);
 
@@ -712,7 +727,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                                 0,
                                 shortTextMessage.length(),
                                 mTopComplicationX - offsetX,
-                                mTopComplicationY + offsetY,
+                                complicationY + offsetY,
                                 mComplicationPaint);
 
                         // Complication short title
@@ -731,7 +746,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                                     0,
                                     shortTitleMessage.length(),
                                     mTopComplicationX - offsetX,
-                                    mTopComplicationY + offsetY,
+                                    complicationY + offsetY,
                                     mComplicationSecondaryPaint);
                         }
                     }
