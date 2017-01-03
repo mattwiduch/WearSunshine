@@ -30,6 +30,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -483,7 +484,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mComplicationRadius = mBackgroundBitmap.getWidth() / 6.3f;
             mTopComplicationX = width / 2;
             mTopComplicationY = (height / 2) - (int) (2.2 * mComplicationRadius);
-            mLeftComplicationX = width / 4;
+            mLeftComplicationX = (width / 4) + (width / 32);
             mLeftComplicationY = height / 2;
             mBottomComplicationY = (height / 2) + (int) (0.2 * mComplicationRadius);
 
@@ -672,25 +673,49 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 if ((complicationData != null)
                         && (complicationData.isActive(currentTimeMillis))) {
 
-                    // Top Dial
+                    // Top & Bottom short text complications
                     if (complicationData.getType() == ComplicationData.TYPE_SHORT_TEXT
                             || complicationData.getType() == ComplicationData.TYPE_NO_PERMISSION) {
+                        drawShortTextComplication(
+                                canvas,
+                                currentTimeMillis,
+                                complicationData,
+                                COMPLICATION_IDS[i]);
+                    }
+                    // Left small image complications
+                    if (complicationData.getType() == ComplicationData.TYPE_SMALL_IMAGE
+                            || complicationData.getType() == ComplicationData.TYPE_NO_PERMISSION) {
+                        drawSmallImageComplication(
+                                canvas,
+                                complicationData);
+                    }
+                }
+            }
+        }
 
-                        ComplicationText shortText = complicationData.getShortText();
-                        ComplicationText shortTitle = complicationData.getShortTitle();
+        /** Draws top & bottom short text complications.
+         * @param canvas on which to draw
+         * @param now current time in milliseconds
+         * @param data to be drawn
+         * @param id of the complication
+         */
+        private void drawShortTextComplication(Canvas canvas, long now, ComplicationData data,
+                                               int id) {
+            ComplicationText shortText = data.getShortText();
+            ComplicationText shortTitle = data.getShortTitle();
 
-                        CharSequence shortTextMessage =
-                                shortText.getText(getApplicationContext(), currentTimeMillis);
+            CharSequence shortTextMessage =
+                    shortText.getText(getApplicationContext(), now);
 
-                        int complicationY;
+            int complicationY;
 
-                        if (COMPLICATION_IDS[i] == TOP_DIAL_COMPLICATION) {
-                            complicationY = mTopComplicationY;
-                        } else if (COMPLICATION_IDS[i] == BOTTOM_DIAL_COMPLICATION){
-                            complicationY = mBottomComplicationY;
-                        } else {
-                            complicationY = mLeftComplicationY;
-                        }
+            if (id == TOP_DIAL_COMPLICATION) {
+                complicationY = mTopComplicationY;
+            } else if (id == BOTTOM_DIAL_COMPLICATION){
+                complicationY = mBottomComplicationY;
+            } else {
+                complicationY = mLeftComplicationY;
+            }
 //                        // Complication background
 //                        canvas.drawCircle(
 //                                mTopComplicationX,
@@ -698,60 +723,83 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 //                                mComplicationRadius,
 //                                mHandDecorationPaint);
 
-                        // Complication stroke
-                        canvas.drawCircle(
-                                mTopComplicationX,
-                                complicationY + mComplicationRadius,
-                                mComplicationRadius,
-                                mComplicationStrokePaint);
+            // Complication stroke
+            canvas.drawCircle(
+                    mTopComplicationX,
+                    complicationY + mComplicationRadius,
+                    mComplicationRadius,
+                    mComplicationStrokePaint);
 
-                        float textWidth =
-                                mComplicationPaint.measureText(
-                                        shortTextMessage,
-                                        0,
-                                        shortTextMessage.length());
+            float textWidth =
+                    mComplicationPaint.measureText(
+                            shortTextMessage,
+                            0,
+                            shortTextMessage.length());
 
-                        float offsetX = textWidth / 2;
-                        float offsetY = mComplicationRadius;
-                        if (shortTitle == null) {
-                            Rect textBounds = new Rect();
-                            mComplicationPaint.getTextBounds(shortTextMessage.toString(),
-                                    0, 1, textBounds);
+            float offsetX = textWidth / 2;
+            float offsetY = mComplicationRadius;
+            if (shortTitle == null) {
+                Rect textBounds = new Rect();
+                mComplicationPaint.getTextBounds(shortTextMessage.toString(),
+                        0, 1, textBounds);
 
-                            offsetY += textBounds.height() / 2;
-                        }
-
-                        // Complication short text
-                        canvas.drawText(
-                                shortTextMessage,
-                                0,
-                                shortTextMessage.length(),
-                                mTopComplicationX - offsetX,
-                                complicationY + offsetY,
-                                mComplicationPaint);
-
-                        // Complication short title
-                        if (shortTitle != null) {
-                            CharSequence shortTitleMessage =
-                                    shortTitle.getText(getApplicationContext(), currentTimeMillis);
-
-                            offsetX = mComplicationSecondaryPaint.measureText(
-                                    shortTitleMessage,
-                                    0,
-                                    shortTitleMessage.length()) / 2;
-                            offsetY = 1.5f * mComplicationRadius;
-
-                            canvas.drawText(
-                                    shortTitleMessage,
-                                    0,
-                                    shortTitleMessage.length(),
-                                    mTopComplicationX - offsetX,
-                                    complicationY + offsetY,
-                                    mComplicationSecondaryPaint);
-                        }
-                    }
-                }
+                offsetY += textBounds.height() / 2;
             }
+
+            // Complication short text
+            canvas.drawText(
+                    shortTextMessage,
+                    0,
+                    shortTextMessage.length(),
+                    mTopComplicationX - offsetX,
+                    complicationY + offsetY,
+                    mComplicationPaint);
+
+            // Complication short title
+            if (shortTitle != null) {
+                CharSequence shortTitleMessage =
+                        shortTitle.getText(getApplicationContext(), now);
+
+                offsetX = mComplicationSecondaryPaint.measureText(
+                        shortTitleMessage,
+                        0,
+                        shortTitleMessage.length()) / 2;
+                offsetY = 1.5f * mComplicationRadius;
+
+                canvas.drawText(
+                        shortTitleMessage,
+                        0,
+                        shortTitleMessage.length(),
+                        mTopComplicationX - offsetX,
+                        complicationY + offsetY,
+                        mComplicationSecondaryPaint);
+            }
+        }
+
+        /** Draws left small image complications.
+         * @param canvas on which to draw
+         * @param data to be drawn
+         */
+        private void drawSmallImageComplication(Canvas canvas, ComplicationData data) {
+            BitmapDrawable imageDrawable = (BitmapDrawable) data.getSmallImage()
+                    .loadDrawable(getApplicationContext());
+            Bitmap imageBitmap = imageDrawable.getBitmap();
+
+            float widthScale = (mBackgroundBitmap.getWidth() * 0.5f * 0.35f) / imageBitmap.getWidth();
+            float heightScale = (mBackgroundBitmap.getHeight() * 0.5f * 0.35f) / imageBitmap.getHeight();
+            int scaledWidth = (int) (widthScale * imageBitmap.getWidth());
+            int scaledHeight = (int) (heightScale * imageBitmap.getHeight());
+
+            Bitmap image = Bitmap.createScaledBitmap(imageBitmap, scaledWidth, scaledHeight, false);
+
+            int offsetX = scaledWidth / 2;
+            int offsetY = scaledHeight / 2;
+
+            canvas.drawBitmap(
+                    image,
+                    mLeftComplicationX - offsetX,
+                    mLeftComplicationY - offsetY,
+                    mComplicationPaint);
         }
 
         @Override
