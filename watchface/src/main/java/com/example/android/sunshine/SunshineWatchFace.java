@@ -16,7 +16,9 @@
 
 package com.example.android.sunshine;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -37,14 +39,15 @@ import android.os.Message;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.wearable.complications.ComplicationData;
+import android.support.wearable.complications.ComplicationHelperActivity;
 import android.support.wearable.complications.ComplicationText;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
@@ -60,6 +63,8 @@ import static android.support.wearable.watchface.WatchFaceStyle.PROTECT_STATUS_B
  * mode. The watch face is drawn with less contrast in mute mode.
  */
 public class SunshineWatchFace extends CanvasWatchFaceService {
+
+    private static final String TAG = SunshineWatchFace.class.getSimpleName();
 
     /*
      * Update rate in milliseconds for interactive mode. We update once a second to advance the
@@ -208,7 +213,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .setHotwordIndicatorGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL)
                     .setShowUnreadCountIndicator(true)
                     .setViewProtectionMode(PROTECT_STATUS_BAR | PROTECT_HOTWORD_INDICATOR)
-                    //.setAcceptsTapEvents(true)
+                    .setAcceptsTapEvents(true)
                     .setHideHotwordIndicator(true)
                     .setHideStatusBar(true)
                     .build());
@@ -526,20 +531,102 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         @Override
         public void onTapCommand(int tapType, int x, int y, long eventTime) {
             switch (tapType) {
-                case TAP_TYPE_TOUCH:
-                    // The user has started touching the screen.
-                    break;
-                case TAP_TYPE_TOUCH_CANCEL:
-                    // The user has started a different gesture or otherwise cancelled the tap.
-                    break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    // TODO: Add code to handle the tap gesture.
-                    Toast.makeText(getApplicationContext(), R.string.message, Toast.LENGTH_SHORT)
-                            .show();
+                    int tappedComplicationId = getTappedComplicationId(x, y);
+                    if (tappedComplicationId != -1) {
+                        onComplicationTap(tappedComplicationId);
+                    }
                     break;
             }
             invalidate();
+        }
+
+        // Fires PendingIntent associated with complication (if it has one).
+        private void onComplicationTap(int complicationId) {
+            ComplicationData complicationData =
+                    mActiveComplicationDataSparseArray.get(complicationId);
+
+            if (complicationData != null) {
+
+                if (complicationData.getTapAction() != null) {
+                    try {
+                        complicationData.getTapAction().send();
+                    } catch (PendingIntent.CanceledException e) {
+                        Log.e(TAG, "onComplicationTap() tap action error: " + e);
+                    }
+
+                } else if (complicationData.getType() == ComplicationData.TYPE_NO_PERMISSION) {
+
+                    // Watch face does not have permission to receive complication data, so launch
+                    // permission request.
+                    ComponentName componentName = new ComponentName(
+                            getApplicationContext(),
+                            SunshineWatchFace.class);
+
+                    Intent permissionRequestIntent =
+                            ComplicationHelperActivity.createPermissionRequestHelperIntent(
+                                    getApplicationContext(), componentName);
+
+                    startActivity(permissionRequestIntent);
+                }
+
+            } else {
+                Log.d(TAG, "No PendingIntent for complication " + complicationId + ".");
+            }
+        }
+        /*
+        * Determines if tap inside a complication area or returns -1.
+        */
+        private int getTappedComplicationId(int touchX, int touchY) {
+            ComplicationData complicationData;
+            long currentTimeMillis = System.currentTimeMillis();
+
+            for (int i = 0; i < COMPLICATION_IDS.length; i++) {
+                complicationData = mActiveComplicationDataSparseArray.get(COMPLICATION_IDS[i]);
+
+                if ((complicationData != null)
+                        && (complicationData.isActive(currentTimeMillis))
+                        && (complicationData.getType() != ComplicationData.TYPE_NOT_CONFIGURED)
+                        && (complicationData.getType() != ComplicationData.TYPE_EMPTY)) {
+
+                    int complicationX = 0;
+                    int complicationY = 0;
+                    int radius = 0;
+
+                    switch (COMPLICATION_IDS[i]) {
+                        case TOP_DIAL_COMPLICATION:
+                            radius = (int) mComplicationRadius;
+                            complicationX = mTopComplicationX;
+                            complicationY = mTopComplicationY + radius;
+                            break;
+
+                        case LEFT_DIAL_COMPLICATION:
+                            radius = (int) (mBackgroundBitmap.getWidth() * 0.5f * 0.35f) / 2;
+                            complicationX = mLeftComplicationX;
+                            complicationY = mLeftComplicationY;
+                            break;
+
+                        case BOTTOM_DIAL_COMPLICATION:
+                            radius = (int) mComplicationRadius;
+                            complicationX = mTopComplicationX;
+                            complicationY = mBottomComplicationY + radius;
+                            break;
+                    }
+
+                    // Distance between two points formula
+                    float touchRadius = (float) Math.sqrt(Math.pow(complicationX - touchX, 2)
+                            + Math.pow(complicationY - touchY, 2));
+
+                    if (touchRadius < radius) {
+                        Log.d(TAG, "getTappedComplicationId: " + COMPLICATION_IDS[i]);
+                        return COMPLICATION_IDS[i];
+                    } else {
+                        Log.e(TAG, "Not a recognized complication id.");
+                    }
+                }
+            }
+            return -1;
         }
 
         @Override
