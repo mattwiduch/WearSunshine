@@ -34,6 +34,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.complications.ComplicationData;
+import android.support.wearable.complications.ComplicationText;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
@@ -120,6 +121,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final float SECOND_STROKE_WIDTH = 2f;
         private static final float TICK_PRIMARY_STROKE_WIDTH = 5f;
         private static final float TICK_SECONDARY_STROKE_WIDTH = 2f;
+        private static final float COMPLICATION_STROKE_WIDTH = 1f;
 
         private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 10f;
         private static final float SECOND_HAND_CIRCLE_RADIUS = 7f;
@@ -128,14 +130,20 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int SECONDARY_SHADOW_RADIUS = 3;
 
         private static final float HOUR_LABEL_FONT_SIZE = 54f;
-        private static final float COMPLICATIONS_FONT_SIZE = 24f;
+        private static final float COMPLICATIONS_PRIMARY_FONT_SIZE = 36f;
+        private static final float COMPLICATIONS_SECONDARY_FONT_SIZE = 24f;
 
         // Variables for painting Complications
         private Paint mComplicationPaint;
+        private Paint mComplicationSecondaryPaint;
+        private Paint mComplicationStrokePaint;
 
         // X and Y coordinates used to place complications properly
-        private int mComplicationsX;
-        private int mComplicationsY;
+        private int mTopComplicationX;
+        private int mTopComplicationY;
+
+        // Complication radius
+        private float mComplicationRadius;
 
         /* Maps active complication ids to the data for that complication. Note: Data will only be
          * present if the user has chosen a provider via the settings activity for the watch face.
@@ -331,9 +339,23 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mComplicationPaint = new Paint();
             mComplicationPaint.setColor(Color.WHITE);
-            mComplicationPaint.setTextSize(COMPLICATIONS_FONT_SIZE);
-            mComplicationPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+            mComplicationPaint.setTextSize(COMPLICATIONS_PRIMARY_FONT_SIZE);
+            mComplicationPaint.setTypeface(Typeface.createFromAsset(getAssets(),
+                    "fonts/Kanit-Light.ttf"));
             mComplicationPaint.setAntiAlias(true);
+
+            mComplicationSecondaryPaint = new Paint();
+            mComplicationSecondaryPaint.setColor(getColor(R.color.primary_light));
+            mComplicationSecondaryPaint.setTextSize(COMPLICATIONS_SECONDARY_FONT_SIZE);
+            mComplicationSecondaryPaint.setTypeface(Typeface.createFromAsset(getAssets(),
+                    "fonts/Kanit-Light.ttf"));
+            mComplicationSecondaryPaint.setAntiAlias(true);
+
+            mComplicationStrokePaint = new Paint();
+            mComplicationStrokePaint.setColor(getColor(R.color.primary_light));
+            mComplicationStrokePaint.setStrokeWidth(COMPLICATION_STROKE_WIDTH);
+            mComplicationStrokePaint.setAntiAlias(true);
+            mComplicationStrokePaint.setStyle(Paint.Style.STROKE);
 
             // Tells Android Wear complications are supported and passes their unique IDs
             setActiveComplications(COMPLICATION_IDS);
@@ -455,7 +477,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     (int) (mBackgroundBitmap.getHeight() * scale), true);
 
             // Recalculate surface changes
-            mComplicationsY = (int) ((height / 2) + (mComplicationPaint.getTextSize() / 2));
+            mComplicationRadius = mBackgroundBitmap.getWidth() / 6.3f;
+            mTopComplicationX = width / 2;
+            mTopComplicationY = (height / 2) - (int) (2.2 * mComplicationRadius);
 
             /*
              * Create a gray version of the image only if it will look nice on the device in
@@ -522,6 +546,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             } else {
                 canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
             }
+
+            // Draw Complications
+            drawComplications(canvas, now);
 
             /*
              * These calculations reflect the rotation in degrees per unit of time, e.g.,
@@ -621,6 +648,94 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             /* Draw rectangle behind peek card in ambient mode to improve readability. */
             if (mAmbient) {
                 canvas.drawRect(mPeekCardBounds, mBackgroundPaint);
+            }
+        }
+
+        /**
+         * Draws complications on the watch face.
+         * @param canvas where complications are drawn
+         * @param currentTimeMillis current time in milliseconds
+         */
+        private void drawComplications(Canvas canvas, long currentTimeMillis) {
+            ComplicationData complicationData;
+
+            for (int i = 0; i < COMPLICATION_IDS.length; i++) {
+
+                complicationData = mActiveComplicationDataSparseArray.get(COMPLICATION_IDS[i]);
+
+                if ((complicationData != null)
+                        && (complicationData.isActive(currentTimeMillis))) {
+
+                    // Top Dial
+                    if (complicationData.getType() == ComplicationData.TYPE_SHORT_TEXT
+                            || complicationData.getType() == ComplicationData.TYPE_NO_PERMISSION) {
+
+                        ComplicationText shortText = complicationData.getShortText();
+                        ComplicationText shortTitle = complicationData.getShortTitle();
+
+                        CharSequence shortTextMessage =
+                                shortText.getText(getApplicationContext(), currentTimeMillis);
+
+//                        // Complication background
+//                        canvas.drawCircle(
+//                                mTopComplicationX,
+//                                mTopComplicationY + mComplicationRadius,
+//                                mComplicationRadius,
+//                                mHandDecorationPaint);
+
+                        // Complication stroke
+                        canvas.drawCircle(
+                                mTopComplicationX,
+                                mTopComplicationY + mComplicationRadius,
+                                mComplicationRadius,
+                                mComplicationStrokePaint);
+
+                        float textWidth =
+                                mComplicationPaint.measureText(
+                                        shortTextMessage,
+                                        0,
+                                        shortTextMessage.length());
+
+                        float offsetX = textWidth / 2;
+                        float offsetY = mComplicationRadius;
+                        if (shortTitle == null) {
+                            Rect textBounds = new Rect();
+                            mComplicationPaint.getTextBounds(shortTextMessage.toString(),
+                                    0, 1, textBounds);
+
+                            offsetY += textBounds.height() / 2;
+                        }
+
+                        // Complication short text
+                        canvas.drawText(
+                                shortTextMessage,
+                                0,
+                                shortTextMessage.length(),
+                                mTopComplicationX - offsetX,
+                                mTopComplicationY + offsetY,
+                                mComplicationPaint);
+
+                        // Complication short title
+                        if (shortTitle != null) {
+                            CharSequence shortTitleMessage =
+                                    shortTitle.getText(getApplicationContext(), currentTimeMillis);
+
+                            offsetX = mComplicationSecondaryPaint.measureText(
+                                    shortTitleMessage,
+                                    0,
+                                    shortTitleMessage.length()) / 2;
+                            offsetY = 1.5f * mComplicationRadius;
+
+                            canvas.drawText(
+                                    shortTitleMessage,
+                                    0,
+                                    shortTitleMessage.length(),
+                                    mTopComplicationX - offsetX,
+                                    mTopComplicationY + offsetY,
+                                    mComplicationSecondaryPaint);
+                        }
+                    }
+                }
             }
         }
 
