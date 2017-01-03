@@ -34,6 +34,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.complications.ComplicationText;
 import android.support.wearable.watchface.CanvasWatchFaceService;
@@ -790,16 +792,18 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             int scaledWidth = (int) (widthScale * imageBitmap.getWidth());
             int scaledHeight = (int) (heightScale * imageBitmap.getHeight());
 
-            Bitmap image = Bitmap.createScaledBitmap(imageBitmap, scaledWidth, scaledHeight, false);
+            // Create the RoundedBitmapDrawable.
+            RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(
+                    getResources(),
+                    Bitmap.createScaledBitmap(imageBitmap, scaledWidth, scaledHeight, false));
+            roundDrawable.setCircular(true);
 
-            int offsetX = scaledWidth / 2;
-            int offsetY = scaledHeight / 2;
-
-            canvas.drawBitmap(
-                    image,
-                    mLeftComplicationX - offsetX,
-                    mLeftComplicationY - offsetY,
-                    mComplicationPaint);
+            int startX = mLeftComplicationX - scaledWidth / 2;
+            int startY = mLeftComplicationY - scaledHeight / 2;
+            int finishX = mLeftComplicationX + scaledWidth / 2;
+            int finishY = mLeftComplicationY + scaledHeight / 2;
+            roundDrawable.setBounds(startX, startY, finishX, finishY);
+            roundDrawable.draw(canvas);
         }
 
         @Override
