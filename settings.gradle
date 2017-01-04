@@ -1,1 +1,1 @@
-include ':app', ':weather_provider', ':watchface', ':shared_resources'
+include ':app', ':watchface', ':shared_resources'
