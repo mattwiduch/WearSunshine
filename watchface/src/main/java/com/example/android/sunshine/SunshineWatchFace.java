@@ -17,6 +17,7 @@
 package com.example.android.sunshine;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -47,7 +48,11 @@ import java.util.concurrent.TimeUnit;
 
 import static android.support.wearable.watchface.WatchFaceStyle.PROTECT_HOTWORD_INDICATOR;
 import static android.support.wearable.watchface.WatchFaceStyle.PROTECT_STATUS_BAR;
+import static com.example.android.sunshine.ComplicationsHelper.BOTTOM_DIAL_COMPLICATION;
 import static com.example.android.sunshine.ComplicationsHelper.COMPLICATION_IDS;
+import static com.example.android.sunshine.ComplicationsHelper.COMPLICATION_SUPPORTED_TYPES;
+import static com.example.android.sunshine.ComplicationsHelper.LEFT_DIAL_COMPLICATION;
+import static com.example.android.sunshine.ComplicationsHelper.TOP_DIAL_COMPLICATION;
 
 /**
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't
@@ -419,6 +424,20 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             // Recalculate surface changes
             mComplicationsHelper.recalculateComplicationsPositions(width, height);
+
+            // Set default complications
+            setDefaultComplicationProvider(TOP_DIAL_COMPLICATION,
+                    new ComponentName(getPackageName(),
+                            "com.example.android.sunshine.complications.TemperatureProviderService"),
+                    COMPLICATION_SUPPORTED_TYPES[0][1]);
+            setDefaultComplicationProvider(LEFT_DIAL_COMPLICATION,
+                    new ComponentName(getPackageName(),
+                            "com.example.android.sunshine.complications.SummaryProviderService"),
+                    COMPLICATION_SUPPORTED_TYPES[1][0]);
+            setDefaultComplicationProvider(BOTTOM_DIAL_COMPLICATION,
+                    new ComponentName(getPackageName(),
+                            "com.example.android.sunshine.complications.HumidityProviderService"),
+                    COMPLICATION_SUPPORTED_TYPES[2][1]);
 
             /*
              * Create a gray version of the image only if it will look nice on the device in
