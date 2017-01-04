@@ -91,7 +91,7 @@ public class ComplicationsHelper {
         mComplicationPaint.setAntiAlias(true);
 
         mComplicationBackgroundPaint = new Paint();
-        mComplicationBackgroundPaint.setColor(context.getColor(R.color.primary));
+        mComplicationBackgroundPaint.setColor(context.getColor(R.color.primary_dark));
         mComplicationBackgroundPaint.setAntiAlias(true);
 
         mComplicationSecondaryPaint = new Paint();
@@ -491,11 +491,11 @@ public class ComplicationsHelper {
     public void recalculateComplicationsPositions(int backgroundWidth, int backgroundHeight) {
         mBackgroundWidth = backgroundWidth;
         mBackgroundHeight = backgroundHeight;
-        mComplicationRadius = mBackgroundWidth / 6.3f;
+        mComplicationRadius = mBackgroundWidth / 7f;
         mTopComplicationX = mBackgroundWidth / 2;
-        mTopComplicationY = (mBackgroundHeight / 2) - (int) (2.2 * mComplicationRadius);
+        mTopComplicationY = (mBackgroundHeight / 2) - (int) (2.3 * mComplicationRadius);
         mLeftComplicationX = (mBackgroundWidth / 4) + (mBackgroundWidth / 32);
         mLeftComplicationY = mBackgroundHeight / 2;
-        mBottomComplicationY = (mBackgroundHeight / 2) + (int) (0.2 * mComplicationRadius);
+        mBottomComplicationY = (mBackgroundHeight / 2) + (int) (0.3 * mComplicationRadius);
     }
 }
