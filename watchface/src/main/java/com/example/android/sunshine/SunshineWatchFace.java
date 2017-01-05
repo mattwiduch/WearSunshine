@@ -338,7 +338,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
             mAmbient = inAmbientMode;
-            mComplicationsHelper.setAntiAlias(!inAmbientMode);
+            mComplicationsHelper.setAmbientMode(inAmbientMode);
             updateWatchHandStyle();
 
             /* Check and trigger whether or not timer should be running (only in active mode). */

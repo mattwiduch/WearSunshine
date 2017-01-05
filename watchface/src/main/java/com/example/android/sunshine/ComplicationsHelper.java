@@ -484,7 +484,7 @@ public class ComplicationsHelper {
      * Turns anti aliasing on and off.
      * @param inAmbientMode true if device is in ambient mode
      */
-    public void setAntiAlias(boolean inAmbientMode){
+    public void setAmbientMode(boolean inAmbientMode){
         mComplicationPaint.setAntiAlias(!inAmbientMode);
     }
 
