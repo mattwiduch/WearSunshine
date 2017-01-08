@@ -429,7 +429,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             setDefaultComplicationProvider(TOP_DIAL_COMPLICATION,
                     new ComponentName(getPackageName(),
                             "com.example.android.sunshine.complications.TemperatureProviderService"),
-                    COMPLICATION_SUPPORTED_TYPES[0][1]);
+                    COMPLICATION_SUPPORTED_TYPES[0][0]);
             setDefaultComplicationProvider(LEFT_DIAL_COMPLICATION,
                     new ComponentName(getPackageName(),
                             "com.example.android.sunshine.complications.SummaryProviderService"),
@@ -437,7 +437,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             setDefaultComplicationProvider(BOTTOM_DIAL_COMPLICATION,
                     new ComponentName(getPackageName(),
                             "com.example.android.sunshine.complications.HumidityProviderService"),
-                    COMPLICATION_SUPPORTED_TYPES[2][1]);
+                    COMPLICATION_SUPPORTED_TYPES[2][0]);
 
             /*
              * Create a gray version of the image only if it will look nice on the device in
