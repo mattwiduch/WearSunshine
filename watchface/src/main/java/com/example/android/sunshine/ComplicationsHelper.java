@@ -78,6 +78,10 @@ class ComplicationsHelper {
     // Complication radius
     private float mComplicationRadius;
 
+    // Complications' background bitmaps
+    private Bitmap mRangeComplicationBackground;
+    private Bitmap mTextComplicationBackground;
+
     // Maps active complication ids to the data for that complication. Note: Data will only be
     // present if the user has chosen a provider via the settings activity for the watch face.
     private SparseArray<ComplicationData> mActiveComplicationDataSparseArray;
@@ -305,37 +309,14 @@ class ComplicationsHelper {
      * @param now              current time in milliseconds
      */
     private void drawRangeComplication(Canvas canvas, long now, ComplicationData complicationData) {
-        // Define complication's size
-        int width = (int) mComplicationRadius * 2;
-        int height = (int) mComplicationRadius * 2;
+        // Define complication background and it's size
+        Bitmap bitmap = Bitmap.createBitmap(mRangeComplicationBackground);
+        Canvas complicationCanvas = new Canvas(bitmap);
+        float width = (float) bitmap.getWidth();
+        float height = (float) bitmap.getHeight();
         float centerX = width * 0.5f;
         float centerY = height * 0.5f;
         float radius = (width * 0.5f) - 1f;
-
-        // Prepare new canvas for drawing complication
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas complicationCanvas = new Canvas(bitmap);
-
-        // Complication background
-        complicationCanvas.drawCircle(
-                centerX,
-                centerY,
-                radius,
-                mComplicationBackgroundPaint);
-
-        // Complication stroke
-        complicationCanvas.drawCircle(
-                centerX,
-                centerY,
-                radius,
-                mComplicationStrokePaint);
-
-        // Complication stroke
-        complicationCanvas.drawCircle(
-                centerX,
-                centerY,
-                radius + COMPLICATION_MASK_STROKE_WIDTH / 2,
-                mComplicationMaskPaint);
 
         ComplicationText shortTitle = complicationData.getShortTitle();
         Icon icon = complicationData.getIcon();
@@ -383,85 +364,11 @@ class ComplicationsHelper {
                     mComplicationTickPaint);
         }
 
-        /* Draw ticks */
-        float primaryInnerTickRadius = centerX - 16f;
-        float secondaryInnerTickRadius = centerX - 12f;
-        float outerTickRadius = centerX - 8f;
-
-        // Text for tick labels
-        String[] labels = {"60", "80", "100", "0", "20", "40"};
-        int labelIndex = 0;
-
+        /* Draw hand */
         // Rotate the canvas so the range starts at 210 rather than 0 degrees
         complicationCanvas.rotate(CANVAS_ROTATION_DEGREES, centerX, centerY);
-
-        int tickLimit = 21;
-        for (int tickIndex = 0; tickIndex < 23; tickIndex++) {
-            float tickRot = (float) (tickIndex * Math.PI * 2f / 24f);
-            float primaryInnerX = (float) Math.sin(tickRot) * primaryInnerTickRadius;
-            float secondaryInnerX = (float) Math.sin(tickRot) * secondaryInnerTickRadius;
-            float primaryInnerY = (float) -Math.cos(tickRot) * primaryInnerTickRadius;
-            float secondaryInnerY = (float) -Math.cos(tickRot) * secondaryInnerTickRadius;
-            float outerX = (float) Math.sin(tickRot) * outerTickRadius;
-            float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
-
-            // Labelled tick
-            if (tickIndex % 2 == 0 && tickIndex % 4 != 0) {
-                // Get label's text
-                String label = labels[labelIndex++];
-
-                // Calculate text's offset
-                Rect textBounds = new Rect();
-                mComplicationTickPaint.getTextBounds(label, 0, label.length(), textBounds);
-                float textOffsetX = labelIndex == 3 ?
-                        textBounds.width() * 0.75f : textBounds.width() * 0.5f;
-                float textOffsetY = textBounds.height() * 0.5f;
-
-                // Calculate label's offset
-                float offsetX = centerX + secondaryInnerX - textOffsetX;
-                float offsetY = centerY + secondaryInnerY + textOffsetY;
-
-                // Rotate canvas back to original position so text is not drawn rotated
-                complicationCanvas.save();
-                complicationCanvas.rotate(-CANVAS_ROTATION_DEGREES, centerX, centerY);
-                mComplicationTickPaint.setColor(mContext.getColor(R.color.primary_light));
-
-                // Draw label's text
-                complicationCanvas.drawText(
-                        label,
-                        offsetX,
-                        offsetY,
-                        mComplicationTickPaint);
-
-                // Restore canvas & paint
-                mComplicationTickPaint.setColor(Color.WHITE);
-                complicationCanvas.restore();
-            }
-            if (tickIndex > 0 && tickIndex < tickLimit) {
-                if (tickIndex % 2 == 0 && tickIndex % 4 != 0) {
-                    // Long tick line
-                    complicationCanvas.drawLine(
-                            centerX + primaryInnerX,
-                            centerY + primaryInnerY,
-                            centerX + outerX,
-                            centerY + outerY,
-                            mComplicationTickPaint);
-                }
-                if (tickIndex % 2 != 0) {
-                    // Short tick line
-                    complicationCanvas.drawLine(
-                            centerX + secondaryInnerX,
-                            centerY + secondaryInnerY,
-                            centerX + outerX,
-                            centerY + outerY,
-                            mComplicationPaint);
-                }
-            }
-        }
-
-        /* Draw hand */
-        float degrees = 300f * (complicationData.getValue() / complicationData.getMaxValue());
         // Rotate complication's hand (degrees in scale times value percent)
+        float degrees = 300f * (complicationData.getValue() / complicationData.getMaxValue());
         complicationCanvas.rotate(degrees, centerX, centerY);
 
         // Draw hand's bottom circle
@@ -610,6 +517,12 @@ class ComplicationsHelper {
         mComplicationPaint.setAntiAlias(!inAmbientMode);
     }
 
+    /**
+     * Calculates positions of the complications based on watch face size.
+     *
+     * @param backgroundWidth  Width of the watch face
+     * @param backgroundHeight Height of the watch face
+     */
     void recalculateComplicationsPositions(int backgroundWidth, int backgroundHeight) {
         mBackgroundWidth = backgroundWidth;
         mBackgroundHeight = backgroundHeight;
@@ -619,5 +532,142 @@ class ComplicationsHelper {
         mLeftComplicationX = (mBackgroundWidth / 4) + (mBackgroundWidth / 32);
         mLeftComplicationY = mBackgroundHeight / 2;
         mBottomComplicationY = (mBackgroundHeight / 2) + (int) (0.3f * mComplicationRadius);
+        mTextComplicationBackground = createComplicationBackground(mComplicationRadius);
+        mRangeComplicationBackground = createRangeComplicationBackground(mTextComplicationBackground);
+    }
+
+    /**
+     * Adds ticks to provided complication's background.
+     *
+     * @param backgroundBitmap Destination bitmap
+     * @return Background bitmap with ticks drawn
+     */
+    private Bitmap createRangeComplicationBackground(Bitmap backgroundBitmap) {
+        // Get center point coordinates
+        float centerX = backgroundBitmap.getWidth() * 0.5f;
+        float centerY = backgroundBitmap.getHeight() * 0.5f;
+
+        // Prepare new canvas for drawing complication
+        Bitmap bitmap = Bitmap.createBitmap(backgroundBitmap);
+        Canvas complicationCanvas = new Canvas(bitmap);
+        /* Draw ticks */
+        float primaryInnerTickRadius = centerX - 16f;
+        float secondaryInnerTickRadius = centerX - 12f;
+        float outerTickRadius = centerX - 8f;
+
+        // Text for tick labels
+        String[] labels = {"60", "80", "100", "0", "20", "40"};
+        int labelIndex = 0;
+
+        // Rotate the canvas so the range starts at 210 rather than 0 degrees
+        complicationCanvas.rotate(CANVAS_ROTATION_DEGREES, centerX, centerY);
+
+        int tickLimit = 21;
+        for (int tickIndex = 0; tickIndex < 23; tickIndex++) {
+            float tickRot = (float) (tickIndex * Math.PI * 2f / 24f);
+            float primaryInnerX = (float) Math.sin(tickRot) * primaryInnerTickRadius;
+            float secondaryInnerX = (float) Math.sin(tickRot) * secondaryInnerTickRadius;
+            float primaryInnerY = (float) -Math.cos(tickRot) * primaryInnerTickRadius;
+            float secondaryInnerY = (float) -Math.cos(tickRot) * secondaryInnerTickRadius;
+            float outerX = (float) Math.sin(tickRot) * outerTickRadius;
+            float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+
+            // Labelled tick
+            if (tickIndex % 2 == 0 && tickIndex % 4 != 0) {
+                // Get label's text
+                String label = labels[labelIndex++];
+
+                // Calculate text's offset
+                Rect textBounds = new Rect();
+                mComplicationTickPaint.getTextBounds(label, 0, label.length(), textBounds);
+                float textOffsetX = labelIndex == 3 ?
+                        textBounds.width() * 0.75f : textBounds.width() * 0.5f;
+                float textOffsetY = textBounds.height() * 0.5f;
+
+                // Calculate label's offset
+                float offsetX = centerX + secondaryInnerX - textOffsetX;
+                float offsetY = centerY + secondaryInnerY + textOffsetY;
+
+                // Rotate canvas back to original position so text is not drawn rotated
+                complicationCanvas.save();
+                complicationCanvas.rotate(-CANVAS_ROTATION_DEGREES, centerX, centerY);
+                mComplicationTickPaint.setColor(mContext.getColor(R.color.primary_light));
+
+                // Draw label's text
+                complicationCanvas.drawText(
+                        label,
+                        offsetX,
+                        offsetY,
+                        mComplicationTickPaint);
+
+                // Restore canvas & paint
+                mComplicationTickPaint.setColor(Color.WHITE);
+                complicationCanvas.restore();
+            }
+            if (tickIndex > 0 && tickIndex < tickLimit) {
+                if (tickIndex % 2 == 0 && tickIndex % 4 != 0) {
+                    // Long tick line
+                    complicationCanvas.drawLine(
+                            centerX + primaryInnerX,
+                            centerY + primaryInnerY,
+                            centerX + outerX,
+                            centerY + outerY,
+                            mComplicationTickPaint);
+                }
+                if (tickIndex % 2 != 0) {
+                    // Short tick line
+                    complicationCanvas.drawLine(
+                            centerX + secondaryInnerX,
+                            centerY + secondaryInnerY,
+                            centerX + outerX,
+                            centerY + outerY,
+                            mComplicationPaint);
+                }
+            }
+        }
+
+        return bitmap;
+    }
+
+    /**
+     * Creates bitmap to be used as short text complication's background.
+     *
+     * @param complicationRadius Radius of a circle containing complication
+     * @return Complication's background bitmap
+     */
+    private Bitmap createComplicationBackground(float complicationRadius) {
+        // Define complication's size
+        int width = (int) complicationRadius * 2;
+        int height = (int) complicationRadius * 2;
+        float centerX = width * 0.5f;
+        float centerY = height * 0.5f;
+        float radius = (width * 0.5f) - 1f;
+
+        // Prepare new canvas for drawing complication
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas complicationCanvas = new Canvas(bitmap);
+
+        // Complication background
+        complicationCanvas.drawCircle(
+                centerX,
+                centerY,
+                radius,
+                mComplicationBackgroundPaint);
+
+        // Complication stroke
+        complicationCanvas.drawCircle(
+                centerX,
+                centerY,
+                radius,
+                mComplicationStrokePaint);
+
+        // Complication stroke
+        complicationCanvas.drawCircle(
+                centerX,
+                centerY,
+                radius + COMPLICATION_MASK_STROKE_WIDTH / 2,
+                mComplicationMaskPaint);
+
+        return bitmap;
     }
 }
