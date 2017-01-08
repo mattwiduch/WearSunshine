@@ -211,19 +211,13 @@ class ComplicationsHelper {
         } else {
             complicationY = mLeftComplicationY;
         }
-        // Complication background
-        canvas.drawCircle(
-                mTopComplicationX,
-                complicationY + mComplicationRadius,
-                mComplicationRadius,
-                mComplicationBackgroundPaint);
 
-        // Complication stroke
-        canvas.drawCircle(
-                mTopComplicationX,
-                complicationY + mComplicationRadius,
-                mComplicationRadius,
-                mComplicationStrokePaint);
+        // Draw complication background
+        canvas.drawBitmap(
+                mTextComplicationBackground,
+                mTopComplicationX - mTextComplicationBackground.getWidth() * 0.5f,
+                complicationY,
+                null);
 
         float textWidth =
                 mComplicationPaint.measureText(
@@ -404,7 +398,7 @@ class ComplicationsHelper {
                 mContext.getColor(R.color.shadow_light));
 
         /* Draw complication on watch face's canvas */
-        canvas.drawBitmap(bitmap, mTopComplicationX - width / 2, mBottomComplicationY, null);
+        canvas.drawBitmap(bitmap, mTopComplicationX - width * 0.5f, mBottomComplicationY, null);
     }
 
     // Fires PendingIntent associated with complication (if it has one).
