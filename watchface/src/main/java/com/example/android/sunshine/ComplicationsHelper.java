@@ -318,14 +318,14 @@ class ComplicationsHelper {
         /* Display complication icon or title if available */
         if (icon != null) {
             // Prepare icon drawable
-            int iconWidth = (int) (width * 0.2f);
-            int iconHeight = (int) (height * 0.2f);
+            int iconWidth = (int) (width * 0.18f);
+            int iconHeight = (int) (height * 0.18f);
             Drawable iconDrawable = icon.loadDrawable(mContext);
             iconDrawable.setBounds(0, 0, iconWidth, iconHeight);
 
             // Calculate offsets so the icon is drawn centered at desired location
             float offsetX = width * 0.5f - iconWidth * 0.5f;
-            float offsetY = height * 0.7f - iconWidth * 0.5f;
+            float offsetY = height * 0.75f - iconHeight * 0.5f;
 
             // Translate the canvas to draw icon at desired location
             complicationCanvas.translate(offsetX, offsetY);
