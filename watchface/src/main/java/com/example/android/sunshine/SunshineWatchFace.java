@@ -161,6 +161,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private boolean mBurnInProtection;
         private ComplicationsHelper mComplicationsHelper;
         private boolean mIsSquare;
+        private int mSurfaceWidth;
+        private int mSurfaceHeight;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -249,7 +251,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mCalendar = Calendar.getInstance();
         }
 
-        /** Prepares bitmap to be used as watch face background. **/
+        /**
+         * Prepares bitmap to be used as watch face background.
+         **/
         private Bitmap createBackgroundBitmap() {
             // Prepare background bitmap
             mBackgroundPaint = new Paint();
@@ -281,7 +285,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 float outerTickRadius = bitmapCenterX - 7f;
                 float innerHourRadius = bitmapCenterX - 60f;
 
-                int[] hours = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
+                int[] hours = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
                 int hourIndex = 0;
 
                 for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
@@ -291,7 +295,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     float outerX = (float) Math.sin(tickRot) * outerTickRadius;
                     float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
 
-                    if (tickIndex %5 == 0) {
+                    if (tickIndex % 5 == 0) {
                         canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
                                 bitmapCenterX + outerX, bitmapCenterY + outerY, mTickPrimaryPaint);
 
@@ -353,8 +357,35 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         @Override
         public void onApplyWindowInsets(WindowInsets insets) {
             super.onApplyWindowInsets(insets);
+            // Determine wearable's shape
             mIsSquare = !insets.isRound();
-            Log.d(TAG, "onApplyWindowInsets: is square:" + mIsSquare);
+
+            /* Create watch face background bitmap */
+            Log.d(TAG, "onSurfaceChanged: is square: " + mIsSquare);
+            mBackgroundBitmap = createBackgroundBitmap();
+
+            /* Scale loaded background image (more efficient) if surface dimensions change. */
+            float scale = ((float) mSurfaceWidth) / (float) mBackgroundBitmap.getWidth();
+            mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
+                    (int) (mBackgroundBitmap.getWidth() * scale),
+                    (int) (mBackgroundBitmap.getHeight() * scale), true);
+
+            // Recalculate surface changes
+            mComplicationsHelper.recalculateComplicationsPositions(mSurfaceWidth, mSurfaceHeight);
+
+            /*
+             * Create a gray version of the image only if it will look nice on the device in
+             * ambient mode. That means we don't want devices that support burn-in
+             * protection (slight movements in pixels, not great for images going all the way to
+             * edges) and low ambient mode (degrades image quality).
+             *
+             * Also, if your watch face will know about all images ahead of time (users aren't
+             * selecting their own photos for the watch face), it will be more
+             * efficient to create a black/white version (png, etc.) and load that when you need it.
+             */
+            if (!mBurnInProtection && !mLowBitAmbient) {
+                initGrayBackgroundBitmap();
+            }
         }
 
         private void updateWatchHandStyle() {
@@ -411,6 +442,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
 
+            // Get actual width and height of wearable's display
+            mSurfaceWidth = width;
+            mSurfaceHeight = height;
+
             /*
              * Find the coordinates of the center point on the screen, and ignore the window
              * insets, so that, on round watches with a "chin", the watch face is centered on the
@@ -426,18 +461,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             sMinuteHandLength = (float) (mCenterX * 0.8);
             sHourHandLength = (float) (mCenterX * 0.5);
 
-            /* Create watch face background bitmap */
-            mBackgroundBitmap = createBackgroundBitmap();
-
-            /* Scale loaded background image (more efficient) if surface dimensions change. */
-            float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
-            mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
-                    (int) (mBackgroundBitmap.getWidth() * scale),
-                    (int) (mBackgroundBitmap.getHeight() * scale), true);
-
-            // Recalculate surface changes
-            mComplicationsHelper.recalculateComplicationsPositions(width, height);
-
             // Set default complications
             setDefaultComplicationProvider(TOP_DIAL_COMPLICATION,
                     new ComponentName(getPackageName(),
@@ -451,20 +474,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     new ComponentName(getPackageName(),
                             "com.example.android.sunshine.complications.HumidityProviderService"),
                     COMPLICATION_SUPPORTED_TYPES[2][0]);
-
-            /*
-             * Create a gray version of the image only if it will look nice on the device in
-             * ambient mode. That means we don't want devices that support burn-in
-             * protection (slight movements in pixels, not great for images going all the way to
-             * edges) and low ambient mode (degrades image quality).
-             *
-             * Also, if your watch face will know about all images ahead of time (users aren't
-             * selecting their own photos for the watch face), it will be more
-             * efficient to create a black/white version (png, etc.) and load that when you need it.
-             */
-            if (!mBurnInProtection && !mLowBitAmbient) {
-                initGrayBackgroundBitmap();
-            }
         }
 
         private void initGrayBackgroundBitmap() {
