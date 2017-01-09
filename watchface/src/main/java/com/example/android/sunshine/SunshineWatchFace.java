@@ -38,8 +38,10 @@ import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
+import android.view.WindowInsets;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
@@ -73,7 +75,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
      * Handler message id for updating the time periodically in interactive mode.
      */
     private static final int MSG_UPDATE_TIME = 0;
-
 
     @Override
     public Engine onCreateEngine() {
@@ -159,6 +160,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private boolean mLowBitAmbient;
         private boolean mBurnInProtection;
         private ComplicationsHelper mComplicationsHelper;
+        private boolean mIsSquare;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -239,8 +241,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickSecondaryPaint.setColor(getColor(R.color.primary_light));
             mTickSecondaryPaint.setStrokeWidth(TICK_SECONDARY_STROKE_WIDTH);
 
-            prepareBackgroundBitmap();
-
             // Initialise complications helper class
             mComplicationsHelper = new ComplicationsHelper(getApplicationContext());
             // Tells Android Wear complications are supported and passes their unique IDs
@@ -250,61 +250,66 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
 
         /** Prepares bitmap to be used as watch face background. **/
-        private void prepareBackgroundBitmap() {
+        private Bitmap createBackgroundBitmap() {
             // Prepare background bitmap
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(Color.BLACK);
-            mBackgroundBitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
+            Bitmap bitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                     Bitmap.Config.ARGB_8888);
-            mBackgroundBitmap.eraseColor(getColor(R.color.primary_dark));
+            bitmap.eraseColor(getColor(R.color.primary_dark));
 
             // Draw logo on the background bitmap
             Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
             logo = Bitmap.createScaledBitmap(logo, (int) (logo.getWidth() * 0.7f),
                     (int) (logo.getHeight() * 0.7f), true);
-            Canvas canvas = new Canvas(mBackgroundBitmap);
-            float x = (mBackgroundBitmap.getWidth() * 0.7f) - (logo.getWidth() * 0.4f);
-            float y = mBackgroundBitmap.getHeight() * 0.5f - (logo.getHeight() * 0.6f);
+            Canvas canvas = new Canvas(bitmap);
+            float x = (bitmap.getWidth() * 0.7f) - (logo.getWidth() * 0.4f);
+            float y = bitmap.getHeight() * 0.5f - (logo.getHeight() * 0.6f);
             canvas.drawBitmap(logo, x, y, null);
 
+            if (mIsSquare) {
+                Log.d(TAG, "createBackgroundBitmap: SQUARE");
+            } else {
             /*
              * Draw ticks. Usually you will want to bake this directly into the photo, but in
              * cases where you want to allow users to select their own photos, this dynamically
              * creates them on top of the photo.
              */
-            int bitmapCenterX = BACKGROUND_WIDTH / 2;
-            int bitmapCenterY = BACKGROUND_HEIGHT / 2;
-            float innerTickRadius = bitmapCenterX - 34f;
-            float outerTickRadius = bitmapCenterX - 7f;
-            float innerHourRadius = bitmapCenterX - 60f;
+                int bitmapCenterX = BACKGROUND_WIDTH / 2;
+                int bitmapCenterY = BACKGROUND_HEIGHT / 2;
+                float innerTickRadius = bitmapCenterX - 34f;
+                float outerTickRadius = bitmapCenterX - 7f;
+                float innerHourRadius = bitmapCenterX - 60f;
 
-            int hours[] = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
-            int hourIndex = 0;
+                int[] hours = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11};
+                int hourIndex = 0;
 
-            for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
-                float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
-                float innerX = (float) Math.sin(tickRot) * innerTickRadius;
-                float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
-                float outerX = (float) Math.sin(tickRot) * outerTickRadius;
-                float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+                for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
+                    float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
+                    float innerX = (float) Math.sin(tickRot) * innerTickRadius;
+                    float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
+                    float outerX = (float) Math.sin(tickRot) * outerTickRadius;
+                    float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
 
-                if (tickIndex %5 == 0) {
-                    canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
-                            bitmapCenterX + outerX, bitmapCenterY + outerY, mTickPrimaryPaint);
+                    if (tickIndex %5 == 0) {
+                        canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
+                                bitmapCenterX + outerX, bitmapCenterY + outerY, mTickPrimaryPaint);
 
-                    float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 15f;
-                    float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 18f;
-                    if (hourIndex == 0) {
-                        innerHourX -= 5f;
+                        float innerHourX = (float) (Math.sin(tickRot) * innerHourRadius) - 15f;
+                        float innerHourY = (float) (-Math.cos(tickRot) * innerHourRadius) + 18f;
+                        if (hourIndex == 0) {
+                            innerHourX -= 5f;
+                        }
+
+                        canvas.drawText(Integer.toString(hours[hourIndex++]),
+                                bitmapCenterX + innerHourX, bitmapCenterY + innerHourY, mTickPrimaryPaint);
+                    } else {
+                        canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
+                                bitmapCenterX + outerX, bitmapCenterY + outerY, mTickSecondaryPaint);
                     }
-
-                    canvas.drawText(Integer.toString(hours[hourIndex++]),
-                            bitmapCenterX + innerHourX, bitmapCenterY + innerHourY, mTickPrimaryPaint);
-                } else {
-                    canvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
-                            bitmapCenterX + outerX, bitmapCenterY + outerY, mTickSecondaryPaint);
                 }
             }
+            return bitmap;
         }
 
         @Override
@@ -343,6 +348,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             /* Check and trigger whether or not timer should be running (only in active mode). */
             updateTimer();
+        }
+
+        @Override
+        public void onApplyWindowInsets(WindowInsets insets) {
+            super.onApplyWindowInsets(insets);
+            mIsSquare = !insets.isRound();
+            Log.d(TAG, "onApplyWindowInsets: is square:" + mIsSquare);
         }
 
         private void updateWatchHandStyle() {
@@ -414,10 +426,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             sMinuteHandLength = (float) (mCenterX * 0.8);
             sHourHandLength = (float) (mCenterX * 0.5);
 
+            /* Create watch face background bitmap */
+            mBackgroundBitmap = createBackgroundBitmap();
 
             /* Scale loaded background image (more efficient) if surface dimensions change. */
             float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
-
             mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
                     (int) (mBackgroundBitmap.getWidth() * scale),
                     (int) (mBackgroundBitmap.getHeight() * scale), true);
