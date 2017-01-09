@@ -30,6 +30,7 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,7 +39,6 @@ import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
@@ -119,6 +119,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private static final int SECONDARY_SHADOW_RADIUS = 3;
 
         private static final float HOUR_LABEL_FONT_SIZE = 54f;
+
+        private static final int TICK_PADDING = 8;
+        private static final int TICK_LENGTH = 28;
 
         private final Rect mPeekCardBounds = new Rect();
         /* Handler to update the time once a second in interactive mode. */
@@ -257,7 +260,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private Bitmap createBackgroundBitmap() {
             // Prepare background bitmap
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(Color.BLACK);
+            mBackgroundPaint.setColor(getColor(R.color.primary_dark));
             Bitmap bitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                     Bitmap.Config.ARGB_8888);
             bitmap.eraseColor(getColor(R.color.primary_dark));
@@ -269,16 +272,106 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             Canvas canvas = new Canvas(bitmap);
             float x = (bitmap.getWidth() * 0.7f) - (logo.getWidth() * 0.4f);
             float y = bitmap.getHeight() * 0.5f - (logo.getHeight() * 0.6f);
-            canvas.drawBitmap(logo, x, y, null);
 
-            if (mIsSquare) {
-                Log.d(TAG, "createBackgroundBitmap: SQUARE");
-            } else {
             /*
              * Draw ticks. Usually you will want to bake this directly into the photo, but in
              * cases where you want to allow users to select their own photos, this dynamically
              * creates them on top of the photo.
              */
+            if (mIsSquare) {
+                Bitmap ticksBitmap = Bitmap.createBitmap(
+                        BACKGROUND_WIDTH - TICK_PADDING * 2,
+                        BACKGROUND_HEIGHT - TICK_PADDING * 2,
+                        Bitmap.Config.ARGB_8888);
+                Canvas ticksCanvas = new Canvas(ticksBitmap);
+
+                int bitmapCenterX = ticksBitmap.getWidth() / 2;
+                int bitmapCenterY = ticksBitmap.getHeight() / 2;
+                float innerTickRadius = bitmapCenterX - 100f;
+                float outerTickRadius = bitmapCenterX + 100f;
+
+                // Draw ticks on 2nd layer
+                for (int tickIndex = 0; tickIndex < 60; tickIndex++) {
+                    float tickRot = (float) (tickIndex * Math.PI * 2 / 60);
+                    float innerX = (float)  Math.sin(tickRot) * innerTickRadius;
+                    float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
+                    float outerX = (float) Math.sin(tickRot) * outerTickRadius;
+                    float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+
+                    if (tickIndex % 5 == 0) {
+                        ticksCanvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
+                                bitmapCenterX + outerX, bitmapCenterY + outerY, mTickPrimaryPaint);
+                    } else {
+                        ticksCanvas.drawLine(bitmapCenterX + innerX, bitmapCenterY + innerY,
+                                bitmapCenterX + outerX, bitmapCenterY + outerY, mTickSecondaryPaint);
+                    }
+                }
+
+                // Draw mask that will trim ticks
+                RectF rectF = new RectF(new Rect(
+                        TICK_LENGTH,
+                        TICK_LENGTH,
+                        ticksBitmap.getWidth() - TICK_LENGTH ,
+                        ticksBitmap.getHeight() - TICK_LENGTH));
+
+                ticksCanvas.drawRoundRect(rectF, 120f, 120f, mBackgroundPaint);
+
+                // Draw hour labels on top of the mask
+                int width = ticksBitmap.getWidth();
+                int height = ticksBitmap.getHeight();
+
+                // Coordinates of hour labels starting at "1"
+                float[][] labelCoordinates = {
+                        {0.75f * width, 0},
+                        {width, 0.25f * height},
+                        {width, 0.5f * height},
+                        {width, 0.75f * height},
+                        {0.75f * width, height},
+                        {0.5f * width, height},
+                        {0.25f * width, height},
+                        {0, 0.75f * height},
+                        {0, 0.5f * height},
+                        {0, 0.25f * height},
+                        {0.25f * width, 0},
+                        {0.5f * width, 0}
+                };
+
+                for (int index = 0; index < labelCoordinates.length; index++) {
+                    String label = Integer.toString(index + 1);
+
+                    // Get label measurements
+                    Rect textBounds = new Rect();
+                    mTickPrimaryPaint.getTextBounds(label, 0, 1, textBounds);
+                    float textWidth = mTickPrimaryPaint.measureText(label);
+
+                    // Calculate label offsets
+                    float offsetX;
+                    float offsetY;
+
+                    if (index == 0 || index > 9) {
+                        offsetX = -textWidth / 2f;
+                        offsetY = TICK_PADDING * 2 + TICK_LENGTH + textBounds.height();
+                    } else if (index > 0 && index < 4) {
+                        offsetX = -TICK_PADDING * 2f - TICK_LENGTH - textWidth;
+                        offsetY = textBounds.height() / 2f;
+                    } else if (index > 3 && index < 7) {
+                        offsetX = -textWidth / 2f;
+                        offsetY = -TICK_PADDING * 2f - TICK_LENGTH;
+                    } else {
+                        offsetX = TICK_PADDING * 2f + TICK_LENGTH;
+                        offsetY = textBounds.height() / 2f;
+                    }
+
+                    // Draw hour labels
+                    ticksCanvas.drawText(label,
+                            labelCoordinates[index][0] + offsetX,
+                            labelCoordinates[index][1] + offsetY,
+                            mTickPrimaryPaint);
+                }
+
+                // Draw bitmap with ticks on watch face canvas
+                canvas.drawBitmap(ticksBitmap, TICK_PADDING, TICK_PADDING, mBackgroundPaint);
+            } else {
                 int bitmapCenterX = BACKGROUND_WIDTH / 2;
                 int bitmapCenterY = BACKGROUND_HEIGHT / 2;
                 float innerTickRadius = bitmapCenterX - 34f;
@@ -313,6 +406,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     }
                 }
             }
+            canvas.drawBitmap(logo, x, y, null);
+
             return bitmap;
         }
 
@@ -361,7 +456,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mIsSquare = !insets.isRound();
 
             /* Create watch face background bitmap */
-            Log.d(TAG, "onSurfaceChanged: is square: " + mIsSquare);
             mBackgroundBitmap = createBackgroundBitmap();
 
             /* Scale loaded background image (more efficient) if surface dimensions change. */
