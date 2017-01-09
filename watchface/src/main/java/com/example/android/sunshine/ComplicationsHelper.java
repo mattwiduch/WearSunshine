@@ -51,8 +51,7 @@ class ComplicationsHelper {
      */
     private static final float COMPLICATION_STROKE_WIDTH = 4f;
     private static final float COMPLICATION_MASK_STROKE_WIDTH = 100f;
-    private static final float COMPLICATION_PRIMARY_FONT_SIZE = 36f;
-    private static final float COMPLICATION_SECONDARY_FONT_SIZE = 24f;
+    private static final float COMPLICATION_PRIMARY_FONT_SIZE = 24f;
     private static final float COMPLICATION_TICK_FONT_SIZE = 9f;
     private static final int COMPLICATION_TEXT_MAXIMUM_LENGTH = 7;
     private static final float COMPLICATION_PRIMARY_SHADOW_RADIUS = 4f;
@@ -62,18 +61,17 @@ class ComplicationsHelper {
     // Variables for painting Complications
     private Paint mComplicationPaint;
     private Paint mComplicationBackgroundPaint;
-    private Paint mComplicationSecondaryPaint;
     private Paint mComplicationStrokePaint;
     private Paint mComplicationHandPaint;
     private Paint mComplicationTickPaint;
     private Paint mComplicationMaskPaint;
 
     // X and Y coordinates used to place complications properly
-    private int mTopComplicationX;
-    private int mTopComplicationY;
-    private int mLeftComplicationX;
-    private int mLeftComplicationY;
-    private int mBottomComplicationY;
+    private float mTopComplicationX;
+    private float mTopComplicationY;
+    private float mLeftComplicationX;
+    private float mLeftComplicationY;
+    private float mBottomComplicationY;
 
     // Complication radius
     private float mComplicationRadius;
@@ -106,13 +104,6 @@ class ComplicationsHelper {
         mComplicationBackgroundPaint = new Paint();
         mComplicationBackgroundPaint.setColor(context.getColor(R.color.primary));
         mComplicationBackgroundPaint.setAntiAlias(true);
-
-        mComplicationSecondaryPaint = new Paint();
-        mComplicationSecondaryPaint.setColor(context.getColor(R.color.primary_light));
-        mComplicationSecondaryPaint.setTextSize(COMPLICATION_SECONDARY_FONT_SIZE);
-        mComplicationSecondaryPaint.setTypeface(Typeface.createFromAsset(context.getAssets(),
-                "fonts/Kanit-Light.ttf"));
-        mComplicationSecondaryPaint.setAntiAlias(true);
 
         mComplicationStrokePaint = new Paint();
         mComplicationStrokePaint.setColor(context.getColor(R.color.primary_light));
@@ -194,15 +185,18 @@ class ComplicationsHelper {
      * @param data   to be drawn
      * @param id     of the complication
      */
-    private void drawShortTextComplication(Canvas canvas, long now, ComplicationData data,
-                                           int id) {
+    private void drawShortTextComplication(Canvas canvas, long now, ComplicationData data, int id) {
+        // Get text data
         ComplicationText shortText = data.getShortText();
         ComplicationText shortTitle = data.getShortTitle();
 
-        CharSequence shortTextMessage =
-                shortText.getText(mContext, now);
+        CharSequence shortTextMessage = shortText.getText(mContext, now);
+        int endIndex = shortTextMessage.length() < COMPLICATION_TEXT_MAXIMUM_LENGTH ?
+                shortTextMessage.length() : 7;
+        String text = shortTextMessage.toString().substring(0, endIndex);
 
-        int complicationY;
+        // Set correct Y axis position
+        float complicationY;
 
         if (id == TOP_DIAL_COMPLICATION) {
             complicationY = mTopComplicationY;
@@ -219,49 +213,85 @@ class ComplicationsHelper {
                 complicationY,
                 null);
 
-        float textWidth =
-                mComplicationPaint.measureText(
-                        shortTextMessage,
-                        0,
-                        shortTextMessage.length());
-
-        float offsetX = textWidth / 2;
-        float offsetY = mComplicationRadius;
-        if (shortTitle == null) {
-            Rect textBounds = new Rect();
-            mComplicationPaint.getTextBounds(shortTextMessage.toString(),
-                    0, 1, textBounds);
-
-            offsetY += textBounds.height() / 2;
-        }
-
-        // Complication short text
-        canvas.drawText(
-                shortTextMessage,
-                0,
-                shortTextMessage.length(),
-                mTopComplicationX - offsetX,
-                complicationY + offsetY,
-                mComplicationPaint);
-
         // Complication short title
         if (shortTitle != null) {
-            CharSequence shortTitleMessage =
-                    shortTitle.getText(mContext, now);
+            // Set text size dynamically depending on length
+            setTextSize(
+                    mComplicationPaint,
+                    mTextComplicationBackground.getWidth() * 0.5f,
+                    mTextComplicationBackground.getHeight() * 0.2f,
+                    text);
 
-            offsetX = mComplicationSecondaryPaint.measureText(
-                    shortTitleMessage,
-                    0,
-                    shortTitleMessage.length()) / 2;
-            offsetY = 1.5f * mComplicationRadius;
+            // Calculate short text bounds
+            Rect textBounds = new Rect();
+            mComplicationPaint.getTextBounds(text,
+                    0, text.length(), textBounds);
+            float offsetX = mComplicationPaint.measureText(text) * 0.5f;
+            float offsetY = mTextComplicationBackground.getHeight() * 0.3f + textBounds.height() * 0.5f;
 
+            // Complication short text
             canvas.drawText(
-                    shortTitleMessage,
+                    text,
                     0,
-                    shortTitleMessage.length(),
+                    text.length(),
                     mTopComplicationX - offsetX,
                     complicationY + offsetY,
-                    mComplicationSecondaryPaint);
+                    mComplicationPaint);
+
+            // Draw separator
+            canvas.drawLine(
+                    mTopComplicationX - mRangeComplicationBackground.getWidth() * 0.25f,
+                    complicationY + mRangeComplicationBackground.getHeight() * 0.5f,
+                    mTopComplicationX + mRangeComplicationBackground.getWidth() * 0.25f,
+                    complicationY + mRangeComplicationBackground.getHeight() * 0.5f,
+                    mComplicationTickPaint);
+
+            CharSequence shortTitleMessage = shortTitle.getText(mContext, now);
+            endIndex = shortTitleMessage.length() < COMPLICATION_TEXT_MAXIMUM_LENGTH ?
+                    shortTitleMessage.length() : 7;
+            String title = shortTitleMessage.toString().substring(0, endIndex);
+
+            // Set text size dynamically depending on length
+            setTextSize(
+                    mComplicationPaint,
+                    mTextComplicationBackground.getWidth() * 0.5f,
+                    mTextComplicationBackground.getHeight() * 0.2f,
+                    title);
+
+            mComplicationPaint.getTextBounds(title, 0, title.length(), textBounds);
+            offsetX = mComplicationPaint.measureText(title) * 0.5f;
+            offsetY = mTextComplicationBackground.getHeight() * 0.65f + textBounds.height() * 0.5f;
+
+            mComplicationPaint.setColor(mContext.getColor(R.color.primary_light));
+            canvas.drawText(
+                    title,
+                    0,
+                    title.length(),
+                    mTopComplicationX - offsetX,
+                    complicationY + offsetY,
+                    mComplicationPaint);
+            mComplicationPaint.setColor(Color.WHITE);
+        } else {
+            // Set text size dynamically depending on length
+            setTextSize(
+                    mComplicationPaint,
+                    mTextComplicationBackground.getWidth() * 0.5f,
+                    mTextComplicationBackground.getHeight() * 0.4f,
+                    text);
+            // Position text in the middle of complication if there is no title data
+            Rect textBounds = new Rect();
+            mComplicationPaint.getTextBounds(text, 0, text.length(), textBounds);
+            float offsetX = mComplicationPaint.measureText(text) * 0.5f;
+            float offsetY = mTextComplicationBackground.getHeight() * 0.5f
+                    + textBounds.height() * 0.5f;
+            // Complication short text
+            canvas.drawText(
+                    text,
+                    0,
+                    text.length(),
+                    mTopComplicationX - offsetX,
+                    complicationY + offsetY,
+                    mComplicationPaint);
         }
     }
 
@@ -287,10 +317,10 @@ class ComplicationsHelper {
                 Bitmap.createScaledBitmap(imageBitmap, scaledWidth, scaledHeight, false));
         roundDrawable.setCircular(true);
 
-        int startX = mLeftComplicationX - scaledWidth / 2;
-        int startY = mLeftComplicationY - scaledHeight / 2;
-        int finishX = mLeftComplicationX + scaledWidth / 2;
-        int finishY = mLeftComplicationY + scaledHeight / 2;
+        int startX = (int) (mLeftComplicationX - scaledWidth * 0.5f);
+        int startY = (int) (mLeftComplicationY - scaledHeight * 0.5f);
+        int finishX = (int) (mLeftComplicationX + scaledWidth * 0.5f);
+        int finishY = (int) (mLeftComplicationY + scaledHeight * 0.5f);
         roundDrawable.setBounds(startX, startY, finishX, finishY);
         roundDrawable.draw(canvas);
     }
@@ -663,5 +693,41 @@ class ComplicationsHelper {
                 mComplicationMaskPaint);
 
         return bitmap;
+    }
+
+    /**
+     * Sets the text size for a Paint object so a given string of text will be a
+     * given height.
+     *
+     * Credit to Michael Scheper at:
+     * http://stackoverflow.com/questions/12166476/android-canvas-drawtext-set-font-size-from-width
+     * ?answertab=active#tab-top
+     *
+     * @param paint        the Paint to set the text size for
+     * @param desiredHeight the desired height
+     * @param text         the text that should be that width
+     */
+    private static void setTextSize(Paint paint, float desiredWidth, float desiredHeight,
+                                    String text) {
+
+        // Pick a reasonably large value for the test. Larger values produce
+        // more accurate results, but may cause problems with hardware
+        // acceleration. But there are workarounds for that, too; refer to
+        // http://stackoverflow.com/questions/6253528/font-size-too-large-to-fit-in-cache
+        final float testTextSize = COMPLICATION_PRIMARY_FONT_SIZE;
+
+        // Get the bounds of the text, using our testTextSize.
+        paint.setTextSize(testTextSize);
+        Rect bounds = new Rect();
+        paint.getTextBounds(text, 0, text.length(), bounds);
+
+        // Calculate the desired size as a proportion of our testTextSize.
+        float desiredTextSizeByHeight = testTextSize * desiredHeight / bounds.height();
+        float desiredTextSizeByWidth = testTextSize * desiredWidth / bounds.width();
+
+        float desiredTextSize = desiredTextSizeByWidth > desiredTextSizeByHeight ?
+                desiredTextSizeByHeight : desiredTextSizeByWidth;
+        // Set the paint for that size.
+        paint.setTextSize(desiredTextSize);
     }
 }
