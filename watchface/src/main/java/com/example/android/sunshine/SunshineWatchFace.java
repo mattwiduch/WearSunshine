@@ -245,6 +245,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTickSecondaryPaint = new Paint(mTickPrimaryPaint);
             mTickSecondaryPaint.setColor(getColor(R.color.primary_light));
             mTickSecondaryPaint.setStrokeWidth(TICK_SECONDARY_STROKE_WIDTH);
+            mTickSecondaryPaint.setAntiAlias(true);
 
             // Initialise complications helper class
             mComplicationsHelper = new ComplicationsHelper(getApplicationContext());
@@ -261,6 +262,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             // Prepare background bitmap
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(getColor(R.color.primary_dark));
+            mBackgroundPaint.setAntiAlias(false);
+            mBackgroundPaint.setFilterBitmap(true);
             Bitmap bitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                     Bitmap.Config.ARGB_8888);
             bitmap.eraseColor(getColor(R.color.primary_dark));
@@ -488,15 +491,18 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mMinutePaint.setColor(Color.WHITE);
                 mSecondPaint.setColor(Color.WHITE);
                 mCircleBottomPaint.setColor(Color.WHITE);
+                mHandDecorationPaint.setColor(Color.BLACK);
 
                 mHourPaint.setAntiAlias(false);
                 mMinutePaint.setAntiAlias(false);
-                mSecondPaint.setAntiAlias(false);
+                mHandDecorationPaint.setAntiAlias(false);
                 mCircleBottomPaint.setAntiAlias(false);
+                mCircleTopPaint.setAntiAlias(false);
+
+                mBackgroundPaint.setFilterBitmap(false);
 
                 mHourPaint.clearShadowLayer();
                 mMinutePaint.clearShadowLayer();
-                mSecondPaint.clearShadowLayer();
                 mCircleBottomPaint.clearShadowLayer();
 
             } else {
@@ -504,15 +510,18 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mMinutePaint.setColor(mWatchHandColor);
                 mSecondPaint.setColor(mWatchHandHighlightColor);
                 mCircleBottomPaint.setColor(mWatchHandColor);
+                mHandDecorationPaint.setColor(mWatchHandDecorationColor);
 
                 mHourPaint.setAntiAlias(true);
                 mMinutePaint.setAntiAlias(true);
-                mSecondPaint.setAntiAlias(true);
+                mHandDecorationPaint.setAntiAlias(true);
                 mCircleBottomPaint.setAntiAlias(true);
+                mCircleTopPaint.setAntiAlias(true);
+
+                mBackgroundPaint.setFilterBitmap(true);
 
                 mHourPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
                 mMinutePaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
-                mSecondPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
                 mCircleBottomPaint.setShadowLayer(PRIMARY_SHADOW_RADIUS, 0, 0, mWatchDarkShadowColor);
             }
         }
