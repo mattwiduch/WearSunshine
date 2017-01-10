@@ -25,8 +25,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -258,15 +256,19 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         /**
          * Prepares bitmap to be used as watch face background.
          **/
-        private Bitmap createBackgroundBitmap() {
+        private Bitmap createBackgroundBitmap(boolean isAmbient) {
+            // Define colours depending on ambient mode
+            int backgroundColor = isAmbient ? Color.BLACK : getColor(R.color.primary_dark);
+            int secondaryTickColor = isAmbient ? Color.WHITE : getColor(R.color.primary_light);
+            mTickSecondaryPaint.setColor(secondaryTickColor);
             // Prepare background bitmap
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(getColor(R.color.primary_dark));
+            mBackgroundPaint.setColor(backgroundColor);
             mBackgroundPaint.setAntiAlias(false);
             mBackgroundPaint.setFilterBitmap(true);
             Bitmap bitmap = Bitmap.createBitmap(BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                     Bitmap.Config.ARGB_8888);
-            bitmap.eraseColor(getColor(R.color.primary_dark));
+            bitmap.eraseColor(backgroundColor);
 
             // Draw logo on the background bitmap
             Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.ic_logo);
@@ -459,7 +461,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mIsSquare = !insets.isRound();
 
             /* Create watch face background bitmap */
-            mBackgroundBitmap = createBackgroundBitmap();
+            mBackgroundBitmap = createBackgroundBitmap(false);
 
             /* Scale loaded background image (more efficient) if surface dimensions change. */
             float scale = ((float) mSurfaceWidth) / (float) mBackgroundBitmap.getWidth();
@@ -480,8 +482,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
              * selecting their own photos for the watch face), it will be more
              * efficient to create a black/white version (png, etc.) and load that when you need it.
              */
-            if (!mBurnInProtection && !mLowBitAmbient) {
-                initGrayBackgroundBitmap();
+            if (!mBurnInProtection) {
+                mGrayBackgroundBitmap = createBackgroundBitmap(true);
+                mGrayBackgroundBitmap = Bitmap.createScaledBitmap(mGrayBackgroundBitmap,
+                        (int) (mGrayBackgroundBitmap.getWidth() * scale),
+                        (int) (mGrayBackgroundBitmap.getHeight() * scale), true);
             }
         }
 
@@ -498,6 +503,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mHandDecorationPaint.setAntiAlias(false);
                 mCircleBottomPaint.setAntiAlias(false);
                 mCircleTopPaint.setAntiAlias(false);
+                mCircleTopPaint.setColor(Color.BLACK);
 
                 mBackgroundPaint.setFilterBitmap(false);
 
@@ -517,6 +523,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mHandDecorationPaint.setAntiAlias(true);
                 mCircleBottomPaint.setAntiAlias(true);
                 mCircleTopPaint.setAntiAlias(true);
+                mCircleTopPaint.setColor(Color.WHITE);
 
                 mBackgroundPaint.setFilterBitmap(true);
 
@@ -579,20 +586,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     COMPLICATION_SUPPORTED_TYPES[2][0]);
         }
 
-        private void initGrayBackgroundBitmap() {
-            mGrayBackgroundBitmap = Bitmap.createBitmap(
-                    mBackgroundBitmap.getWidth(),
-                    mBackgroundBitmap.getHeight(),
-                    Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(mGrayBackgroundBitmap);
-            Paint grayPaint = new Paint();
-            ColorMatrix colorMatrix = new ColorMatrix();
-            colorMatrix.setSaturation(0);
-            ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
-            grayPaint.setColorFilter(filter);
-            canvas.drawBitmap(mBackgroundBitmap, 0, 0, grayPaint);
-        }
-
         /**
          * Captures tap event (and tap type). The {@link WatchFaceService#TAP_TYPE_TAP} case can be
          * used for implementing specific logic to handle the gesture.
@@ -617,7 +610,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mCalendar.setTimeInMillis(now);
 
             // Draw Background
-            if (mAmbient && (mLowBitAmbient || mBurnInProtection)) {
+            if (mAmbient && mBurnInProtection) {
                 canvas.drawColor(Color.BLACK);
             } else if (mAmbient) {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0, 0, mBackgroundPaint);
