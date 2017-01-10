@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Sunshine Watch Face</string>
+    <string name="message">Watch face tapped</string>
+    <string name="sunshine_analog_name">Sunshine Analog</string>
+    <string name="watch_face_config_name">Configurations</string>
+    <string name="complications_temperature">Temperature</string>
+    <string name="complications_humidity">Humidity</string>
+    <string name="complications_summary">Summary</string>
+    <string name="complications_humidity_label">rh</string>
+    <string name="complications_temperature_label">temp</string>
+    <string name="complications_no_data">--</string>
+</resources>

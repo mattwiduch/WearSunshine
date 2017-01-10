@@ -13,7 +13,7 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
- -->
+-->
 <manifest package="com.example.android.sunshine.app"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -21,16 +21,12 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <!-- Permissions required by the sync adapter -->
-    <uses-permission
-        android:name="android.permission.READ_SYNC_SETTINGS"/>
-    <uses-permission
-        android:name="android.permission.WRITE_SYNC_SETTINGS"/>
-    <uses-permission
-        android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
 
     <!-- Permissions required to make our UI more friendly -->
-    <uses-permission
-        android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <!-- Permissions required for Google Cloud Messaging -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -39,6 +35,7 @@
     <permission
         android:name="com.example.android.sunshine.app.permission.C2D_MESSAGE"
         android:protectionLevel="signature"/>
+
     <uses-permission android:name="com.example.android.sunshine.app.permission.C2D_MESSAGE"/>
 
     <!-- Permissions required to use the Place Picker -->
@@ -90,6 +87,7 @@
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator"/>
@@ -98,11 +96,11 @@
         <!-- The SyncAdapter service -->
         <service
             android:name=".sync.SunshineSyncService"
-            android:exported="true"
-            >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter"/>
@@ -129,6 +127,7 @@
             <intent-filter>
                 <action android:name="com.google.android.apps.muzei.api.MuzeiArtSource"/>
             </intent-filter>
+
             <meta-data
                 android:name="color"
                 android:value="@color/primary"/>
@@ -141,10 +140,12 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
                 <action android:name="com.example.android.sunshine.app.ACTION_DATA_UPDATED"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info_today"/>
         </receiver>
+
         <service android:name=".widget.TodayWidgetIntentService"/>
         <!-- Detail Widget -->
         <receiver
@@ -155,6 +156,7 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
                 <action android:name="com.example.android.sunshine.app.ACTION_DATA_UPDATED"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info_detail"/>
@@ -186,10 +188,18 @@
         <!-- Service that receives messages from the wear device -->
         <service android:name=".sync.SunshineWearListener">
             <intent-filter>
+
                 <!-- listeners receive events that match the action and data filters -->
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:scheme="wear" android:host="*" android:path="/launch_sunshine" />
-                <data android:scheme="wear" android:host="*" android:path="/sync_sunshine" />
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED"/>
+
+                <data
+                    android:host="*"
+                    android:path="/launch_sunshine"
+                    android:scheme="wear"/>
+                <data
+                    android:host="*"
+                    android:path="/sync_sunshine"
+                    android:scheme="wear"/>
             </intent-filter>
         </service>
     </application>
