@@ -675,11 +675,20 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCenterY - sMinuteHandLength + (sMinuteHandLength * 0.04f),
                     mHandDecorationPaint);
 
-            canvas.drawCircle(
-                    mCenterX,
-                    mCenterY,
-                    CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mCircleTopPaint);
+            // Draw top circle
+            if (mAmbient) {
+                canvas.drawCircle(
+                        mCenterX,
+                        mCenterY,
+                        SECOND_HAND_CIRCLE_RADIUS,
+                        mCircleTopPaint);
+            } else {
+                canvas.drawCircle(
+                        mCenterX,
+                        mCenterY,
+                        CENTER_GAP_AND_CIRCLE_RADIUS,
+                        mCircleTopPaint);
+            }
 
             /*
              * Ensure the "seconds" hand is drawn only when we are in interactive mode.
