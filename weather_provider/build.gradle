@@ -22,7 +22,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':shared')
+    compile project(':shared_resources')
     compile 'com.google.android.support:wearable:2.0.0-beta1'
     compile 'com.google.android.gms:play-services-wearable:9.0.2'
 }

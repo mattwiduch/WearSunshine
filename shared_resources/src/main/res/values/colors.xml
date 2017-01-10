@@ -39,4 +39,8 @@
     <!-- the color used for the low temperature in the forecast list -->
     <color name="forecast_low_text">#607D8B</color>
 
+    <!-- Watch face shadow colors -->
+    <color name="shadow_dark">#8A000000</color>
+    <color name="shadow_light">#61000000</color>
+
 </resources>
