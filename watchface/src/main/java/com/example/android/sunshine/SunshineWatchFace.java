@@ -618,8 +618,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
             }
 
-            // Draw Complications
-            mComplicationsHelper.drawComplications(canvas, now);
+            // Draw Complications if device is not in ambient mode
+            if (!mAmbient) {
+                mComplicationsHelper.drawComplications(canvas, now);
+            }
 
             /*
              * These calculations reflect the rotation in degrees per unit of time, e.g.,
